@@ -16,7 +16,7 @@ $en = 1033;
 
 
 
-$full_tail = '/' . $tail . '/v' . $db;
+$full_tail = '/' . $tail . '/v' . $db . '/';
 $proto = 'http://';
 #exec('wget http://um10.eset.com/eset_upd/v5/update.ver 2>&1', $output, $return);
 
@@ -24,10 +24,12 @@ $proto = 'http://';
 
 //download($full_tail . 'update.ver', $tmp_path);
 //rename($tmp_path . 'update.ver', $tmp_path . 'update.rar');
-exec($unrar . ' x -o+ - ' . $tmp_path . 'update.rar ' . $tmp_path , $out, $ret);
+exec($unrar . ' x -o+ ' . $tmp_path . 'update.rar ' . $tmp_path , $out, $ret);
 //var_dump($out, 'Out');
 //var_dump($ret, 'Ret');
 $settings = parse_ini_file($tmp_path . 'update.ver', TRUE, INI_SCANNER_RAW);
+//var_dump($settings); exit();
+$settings_new = array();
 foreach ($settings as $section){
 	//var_dump($section);
 	if(isset($section['file'])){
@@ -35,6 +37,7 @@ foreach ($settings as $section){
 		//echo 'Going to download ' .$section['file'];
 		download($section['file'], $tmp_path);
 		if( filesize($tmp_path . basename($section['file'])) != $section['size']) unlink($tmp_path . basename($section['file']));
+		$settings_new[] = $section; 
 	}
 }
 //var_dump($settings);
