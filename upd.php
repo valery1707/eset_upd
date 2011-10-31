@@ -13,7 +13,7 @@ $db = '4';
 $unrar = '/usr/bin/unrar';
 $ru = 1049;
 $en = 1033;
-
+$official = true;
 
 
 $full_tail = '/' . $tail . '/v' . $db . '/';
@@ -21,17 +21,34 @@ $proto = 'http://';
 #exec('wget http://um10.eset.com/eset_upd/v5/update.ver 2>&1', $output, $return);
 
 
-
+//echo "Downloading update.ver\n";
 download($full_tail . 'update.ver', $tmp_path . 'arc/');
-rename($tmp_path . 'arc/' . 'update.ver', $tmp_path . 'arc/' . 'update.rar');
-exec($unrar . ' x -o+ ' . $tmp_path . 'arc/' . 'update.rar ' . $tmp_path . 'arc/', $out, $ret);
-//var_dump($out, 'Out');
-//var_dump($ret, 'Ret');
-if($ret != 0) err('Error unpacking update.ver'); 
+if($official){
+  rename($tmp_path . 'arc/' . 'update.ver', $tmp_path . 'arc/' . 'update.rar');
+  exec($unrar . ' x -o+ ' . $tmp_path . 'arc/' . 'update.rar ' . $tmp_path . 'arc/', $out, $ret);
+  //var_dump($out, 'Out');
+  //var_dump($ret, 'Ret');
+  if($ret != 0) err('Error unpacking update.ver');  
+}
+
+ 
 $settings = parse_ini_file($tmp_path . 'arc/' . 'update.ver', TRUE, INI_SCANNER_RAW);
 //var_dump($settings); exit();
-$settings_new = array();
-foreach ($settings as $name => $section){
+
+
+$version_new = $settings['ENGINE2']['versionid'];
+$settings_current = array();
+$version_current = 0;
+if(is_file($web_path . 'update.ver')) {
+	$settings_current = parse_ini_file($web_path . 'update.ver', TRUE, INI_SCANNER_RAW);
+	$version_current = $settings_current['ENGINE2']['versionid'];
+}
+
+
+if($version_new > $version_current){
+  
+  $settings_new = array();
+  foreach ($settings as $name => $section){
 	//var_dump($section);
 	if(isset($section['file'])){
 		if (isset($section['language']) && $section['language'] != $ru) continue;
@@ -41,7 +58,7 @@ foreach ($settings as $name => $section){
 		//var_dump($name);exit;
 		$settings_new[$name] = $section;
 	}
-}
+  }
 //var_dump($settings_new);
 //echo "New settings done!\n";
 $settings_file = '';
@@ -53,29 +70,25 @@ foreach ($settings_new as $name => $section) {
 	$settings_file .= "\n";
 }
 
+//echo "Creating new update.ver\n";
 $resource = fopen($tmp_path . 'update.ver', 'w');
+//echo "Resource for update.ver $resource\n";
 $ret = fwrite($resource, $settings_file);
 if($ret === false) err("Cannot create new update.ver!!!");
 //var_dump($settings_file);
 //echo "New settings writed!\n";
-$version_new = $settings['ENGINE2']['versionid'];
 
-$settings_current = array();
-$version_current = 0;
-if(is_file($web_path . 'update.ver')) {
-	$settings_current = parse_ini_file($web_path . 'update.ver', TRUE, INI_SCANNER_RAW);
-	$version_current = $settings_current['ENGINE2']['versionid'];
-}
-
-if($version_new >= $version_current){
+    chkpath($web_path);
 	$resource = opendir($web_path);
+	//echo "Resource for $web_path $resource\n";
 	while (false !== ($file = readdir($resource))) {
-       if($file != '.' || $file != '..') unlink($web_path . $file);
+       if($file != '.' && $file != '..') unlink($web_path . $file);
     }
     
+    chkpath($web_path);
     $resource = opendir($tmp_path);
     while (false !== ($file = readdir($resource))) {
-    	if($file != '.' || $file != '..' || $file != 'arc') rename($tmp_path . $file, $web_path . $file);
+    	if($file != '.' && $file != '..' && $file != 'arc') rename($tmp_path . $file, $web_path . $file);
     }
     //echo "Done!\n";
 }
