@@ -99,11 +99,10 @@ if($version_new > $version_current){
 //echo "New settings done!\n";
 $settings_file = '';
 foreach ($settings_new as $name => $section) {
-	$settings_file .= '[' . $name . "]\n\n";
+	$settings_file .= '[' . $name . "]\n";
 	foreach ($section as $key => $value ) {
 		$settings_file .= $key . '=' . $value . "\n";
 	}
-	$settings_file .= "\n";
 }
 
 //echo "Creating new update.ver\n";
