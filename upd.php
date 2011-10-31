@@ -3,8 +3,8 @@
 $user = 'TRIAL-53698007';
 $pass = 'xerbu3fhef';
 
-$tmp_path = '/tmp/test/eset_upd/tmp/';
-$web_path = '/tmp/test/eset_upd/www/';
+$tmp_path = '/home/u3436/tmp/eset_upd/';
+$web_path = '/home/u3436/domains/roskoclub.org.ua/eset_upd/';
 $srv = 'http://um10.eset.com/eset_upd/v5/';
 $srv = 'update.eset.com';
 $tail = 'eset_upd';
@@ -21,6 +21,33 @@ $proto = 'http://';
 #exec('wget http://um10.eset.com/eset_upd/v5/update.ver 2>&1', $output, $return);
 
 
+if(!function_exists('parse_ini_string')){
+    function parse_ini_string($str, $ProcessSections=false){
+        $lines  = explode("\n", $str);
+        $return = Array();
+        $inSect = false;
+        foreach($lines as $line){
+            $line = trim($line);
+            if(!$line || $line[0] == "#" || $line[0] == ";")
+                continue;
+            if($line[0] == "[" && $endIdx = strpos($line, "]")){
+                $inSect = substr($line, 1, $endIdx-1);
+                continue;
+            }
+            if(!strpos($line, '=')) // (We don't use "=== false" because value 0 is not valid as well)
+                continue;
+           
+            $tmp = explode("=", $line, 2);
+            if($ProcessSections && $inSect)
+                $return[$inSect][trim($tmp[0])] = ltrim($tmp[1]);
+            else
+                $return[trim($tmp[0])] = ltrim($tmp[1]);
+        }
+        return $return;
+    }
+}
+
+
 //echo "Downloading update.ver\n";
 download($full_tail . 'update.ver', $tmp_path . 'arc/');
 if($official){
@@ -31,8 +58,12 @@ if($official){
   if($ret != 0) err('Error unpacking update.ver');  
 }
 
- 
-$settings = parse_ini_file($tmp_path . 'arc/' . 'update.ver', TRUE, INI_SCANNER_RAW);
+$ver_a = explode('.', phpversion());
+$ver = implode('', array($ver_a[0], $ver_a[1]));
+if($ver < 53){
+  $settings_str = file_get_contents($tmp_path . 'arc/' . 'update.ver');
+  $settings = parse_ini_string($settings_str, true);
+}else $settings = parse_ini_file($tmp_path . 'arc/' . 'update.ver', TRUE, INI_SCANNER_RAW);
 //var_dump($settings); exit();
 
 
@@ -40,7 +71,11 @@ $version_new = $settings['ENGINE2']['versionid'];
 $settings_current = array();
 $version_current = 0;
 if(is_file($web_path . 'update.ver')) {
-	$settings_current = parse_ini_file($web_path . 'update.ver', TRUE, INI_SCANNER_RAW);
+  if($ver < 53){
+    $settings_str = file_get_contents($web_path . 'update.ver');
+    $settings = parse_ini_string($settings_str, true);
+  }else $settings_current = parse_ini_file($web_path . 'update.ver', TRUE, INI_SCANNER_RAW);
+
 	$version_current = $settings_current['ENGINE2']['versionid'];
 }
 
@@ -56,6 +91,7 @@ if($version_new > $version_current){
 		download($section['file'], $tmp_path);
 		if( filesize($tmp_path . basename($section['file'])) != $section['size']) err("Checksum error in file: " . basename($section['file']));
 		//var_dump($name);exit;
+                $section['file'] =  basename($section['file']);
 		$settings_new[$name] = $section;
 	}
   }
@@ -140,6 +176,7 @@ function err($message){
 	if(is_file($tmp_path . 'error.log')) unlink($tmp_path . 'error.log');
 	error_log($message . ". File: " . __FILE__ . ' on line: ' . __LINE__ . ' on ' . date('d/m/Y H:i:s'), 3, $tmp_path . 'error.log'); 
 }
+
 
 
 
