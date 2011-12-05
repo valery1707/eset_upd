@@ -5,3 +5,4 @@ pass=Password
 [path]
 tmp=/path/for/tmp/dir/with/last/slash/
 web=/path/for/web/dir/with/last/slash/
+log=/path/for/log/dir/with/last/slash/

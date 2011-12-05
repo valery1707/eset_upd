@@ -4,8 +4,9 @@ $user = '';
 $pass = '';
 $tmp_path = '';
 $web_path = '';
-$log_path = 'log/' . date('Y_m_d_H_i') . '.log';
-$err_path = 'log/last_error.log';
+$log_name = date('Y_m_d_H_i') . '.log';
+$log_dir = '';
+$err_path = 'last_error.log';
 
 $config_file = dirname(__FILE__) . '/config.ini';
 if (is_file($config_file)) {
@@ -14,17 +15,24 @@ if (is_file($config_file)) {
   $pass = $config['auth']['pass'];
   $tmp_path = $config['path']['tmp'];
   $web_path = $config['path']['web'];
+  $log_dir = $config['path']['log'];
   //var_dump($config);exit();
   //logg("user:$user\npass:$pass\ntmp_path:$tmp_path\nweb_path:$web_path\n");exit();
 } else {
   die("Please create '$config_file' from '$config_file.sample'.\n");
 }
 
-if (!is_writable($tmp_path) || !is_writable($web_path)) {
-  die("Check paths writable status:\n$tmp_path: " . is_writable($tmp_path) . "\n$web_path: " . is_writable($web_path) . "\n");
+if (!is_writable($tmp_path)
+ || !is_writable($web_path)
+ || !is_writable($log_dir)) {
+  die("Check paths writable status:"
+    . "\n$tmp_path: " . is_writable($tmp_path)
+    . "\n$web_path: " . is_writable($web_path)
+    . "\n$log_dir: " . is_writable($log_dir)
+    . "\n");
 }
 
-$err_file = $tmp_path . $err_path;
+$err_file = $log_dir . $err_path;
 if (is_file($err_file)) {
   unlink($err_file);
 }
@@ -266,11 +274,11 @@ function err($message){
 }
 
 function logg($msg) {
-  global $tmp_path, $log_path;
+  global $log_dir, $log_name;
   echo $msg . "\n";
-  $log_file = $tmp_path . $log_path;
-  $log_dir = dirname($log_file);
-  if (is_dir($log_dir)) {
+  $log_file = $log_dir . $log_name;
+  $log_d = dirname($log_file);
+  if (is_dir($log_d)) {
     error_log($msg . "\n", 3, $log_file);
   }
 }
