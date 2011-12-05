@@ -4,6 +4,8 @@ $user = '';
 $pass = '';
 $tmp_path = '';
 $web_path = '';
+$log_path = 'log/' . date('Y_m_d_H_i') . '.log';
+$err_path = 'log/last_error.log';
 
 $config_file = dirname(__FILE__) . '/config.ini';
 if (is_file($config_file)) {
@@ -18,6 +20,14 @@ if (is_file($config_file)) {
   die("Please create '$config_file' from '$config_file.sample'.\n");
 }
 
+if (!is_writable($tmp_path) || !is_writable($web_path)) {
+  die("Check paths writable status:\n$tmp_path: " . is_writable($tmp_path) . "\n$web_path: " . is_writable($web_path) . "\n");
+}
+
+$err_file = $tmp_path . $err_path;
+if (is_file($err_file)) {
+  unlink($err_file);
+}
 
 $srv = 'http://um10.eset.com/eset_upd/v5/';
 $srv = 'update.eset.com';
@@ -140,7 +150,6 @@ if ($version_new > $version_current) {
     }
   }//foreach
   //var_dump($settings_new);
-  logg("Processing new settings done (total: $filescount_total; $download: $filescount_download; keeped: $filescount_keeped)!");
 
   logg("Creating new update.ver");
   $settings_file = '';
@@ -157,7 +166,7 @@ if ($version_new > $version_current) {
     err("Cannot create new update.ver!!!");
   }
   //var_dump($settings_file);
-  logg("New settings writed!");
+  //logg("New settings writed!");
 
 /*
   logg("Clear $web_path");
@@ -184,7 +193,9 @@ if ($version_new > $version_current) {
       rename($file_name_tmp, $file_name_web);
     }
   }
-  echo "Done!\n";
+  logg("Processing new settings done (total: $filescount_total; downloaded: $filescount_download; keeped: $filescount_keeped)!");
+} else {
+  logg("Done");
 }//if ($version_new > $version_current)
 
 
@@ -238,16 +249,15 @@ $arr = parse_ini_file('update.ver4', TRUE, INI_SCANNER_RAW);
 
 
 function err($message){
-  global $tmp_path;
-  //if(is_file($tmp_path . 'error.log')) unlink($tmp_path . 'error.log');
-  error_log($message . ". File: " . __FILE__ . ' on line: ' . __LINE__ . ' on ' . date('Y-m-d H:i:s') . '\n', 3, $tmp_path . 'error.log'); 
+  global $err_file;
+  error_log($message . ". File: " . __FILE__ . ' on line: ' . __LINE__ . ' on ' . date('Y-m-d H:i:s') . '\n', 3, $err_file);
   logg("ERR: " . $message);
 }
 
 function logg($msg) {
-  global $tmp_path;
+  global $tmp_path, $log_path;
   echo $msg . "\n";
-  $log_file = $tmp_path . 'log/' . date('Y_m_d_h_i') . '.log';
+  $log_file = $tmp_path . $log_path;
   $log_dir = dirname($log_file);
   if (is_dir($log_dir)) {
     error_log($msg . "\n", 3, $log_file);
