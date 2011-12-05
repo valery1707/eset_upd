@@ -111,15 +111,17 @@ if(is_file($web_path . 'update.ver')) {
 logg("Versions: new ($version_new) vs old ($version_current)");
 if ($version_new > $version_current) {
   $settings_new = array();
-  $filescount_total = 0;
-  $filescount_download = 0;
-  $filescount_keeped = 0;
+  $files_count_total = 0;
+  $files_count_download = 0;
+  $files_count_keeped = 0;
+  $files_size_download = 0;
+  $files_size_keeped = 0;
   foreach ($settings as $name => $section) {
     //var_dump($section);
     if (isset($section['file'])) {
       if (isset($section['language']) && $section['language'] != $ru) continue;
 
-      $filescount_total++;
+      $files_count_total++;
       $file_url = $section['file'];
       $file_name = basename($file_url);
       $filesize_ini = $section['size'];
@@ -132,12 +134,14 @@ if ($version_new > $version_current) {
       if ($filesize_url != $filesize_old) {
         logg("Going to download '$file_name' on size diff (old: $filesize_old, url: $filesize_url, ini: $filesize_ini)");
         download($file_url, $tmp_path);
-        $filescount_download++;
+        $files_count_download++;
         $filesize_new = filesize($tmp_path . $file_name);
+        $files_size_download += $filesize_new;
       } else {
         logg("Keep old '$file_name' on file size equal (old: $filesize_old, url: $filesize_url, ini: $filesize_ini)");
-        $filescount_keeped++;
+        $files_count_keeped++;
         $filesize_new = $filesize_old;
+        $files_size_keeped += $filesize_new;
       }
 
       if ($filesize_new != $filesize_url) {
@@ -193,7 +197,9 @@ if ($version_new > $version_current) {
       rename($file_name_tmp, $file_name_web);
     }
   }
-  logg("Processing new settings done (total: $filescount_total; downloaded: $filescount_download; keeped: $filescount_keeped)!");
+  $files_size_download_f = format_size($files_size_download);
+  $files_size_keeped_f = format_size($files_size_keeped);
+  logg("Processing new settings done (total: $files_count_total; downloaded: $files_count_download [$files_size_download_f]; keeped: $files_count_keeped [$files_size_keeped_f])!");
 } else {
   logg("Done");
 }//if ($version_new > $version_current)
@@ -262,6 +268,16 @@ function logg($msg) {
   if (is_dir($log_dir)) {
     error_log($msg . "\n", 3, $log_file);
   }
+}
+
+function format_size($value) {
+  $metrics = array('bytes', 'KiB', 'MiB', 'GiB', 'TiB');
+  $metric = 0;
+  while (floor($value/1024) > 0) {
+    ++$metric;
+    $value /= 1024;
+  }
+  return round($value, 2) . " " . (isset($metrics[$metric]) ? $metrics[$metric] : '???');
 }
 
 //echo($arr['HOSTS']['Other']);
