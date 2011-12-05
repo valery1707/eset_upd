@@ -1,10 +1,12 @@
 <?php
 
-$user = 'TRIAL-53698007';
-$pass = 'xerbu3fhef';
+$user = '';
+$pass = '';
 
-$tmp_path = '/home/u3436/tmp/eset_upd/';
-$web_path = '/home/u3436/domains/roskoclub.org.ua/eset_upd/';
+$tmp_path = '/home/valery1707/nod32/mirror_4_file/';
+$web_path = '/home/valery1707/nod32/mirror_4_web/';
+
+
 $srv = 'http://um10.eset.com/eset_upd/v5/';
 $srv = 'update.eset.com';
 $tail = 'eset_upd';
@@ -47,10 +49,25 @@ if(!function_exists('parse_ini_string')){
     }
 }
 
+function load_ini_file($file_path) {
+  $ver_a = explode('.', phpversion());
+  $ver = implode('', array($ver_a[0], $ver_a[1]));
 
-//echo "Downloading update.ver\n";
+  logg("Load ini from '$file_path' with php version $ver");
+  if($ver < 53){
+    $settings_str = file_get_contents($file_path);
+    $settings = parse_ini_string($settings_str, true);
+  }else {
+    $settings = parse_ini_file($file_path, TRUE, INI_SCANNER_RAW);
+  }
+  //var_dump($settings);
+  return $settings;
+}
+
+
+logg("Downloading update.ver");
 download($full_tail . 'update.ver', $tmp_path . 'arc/');
-if($official){
+if ($official) {
   rename($tmp_path . 'arc/' . 'update.ver', $tmp_path . 'arc/' . 'update.rar');
   exec($unrar . ' x -o+ ' . $tmp_path . 'arc/' . 'update.rar ' . $tmp_path . 'arc/', $out, $ret);
   //var_dump($out, 'Out');
@@ -58,75 +75,105 @@ if($official){
   if($ret != 0) err('Error unpacking update.ver');  
 }
 
-$ver_a = explode('.', phpversion());
-$ver = implode('', array($ver_a[0], $ver_a[1]));
-if($ver < 53){
-  $settings_str = file_get_contents($tmp_path . 'arc/' . 'update.ver');
-  $settings = parse_ini_string($settings_str, true);
-}else $settings = parse_ini_file($tmp_path . 'arc/' . 'update.ver', TRUE, INI_SCANNER_RAW);
+$settings = load_ini_file($tmp_path . 'arc/' . 'update.ver');
 //var_dump($settings); exit();
-
-
 $version_new = $settings['ENGINE2']['versionid'];
+
 $settings_current = array();
 $version_current = 0;
 if(is_file($web_path . 'update.ver')) {
-  if($ver < 53){
-    $settings_str = file_get_contents($web_path . 'update.ver');
-    $settings = parse_ini_string($settings_str, true);
-  }else $settings_current = parse_ini_file($web_path . 'update.ver', TRUE, INI_SCANNER_RAW);
-
-	$version_current = $settings_current['ENGINE2']['versionid'];
+  $settings_current = load_ini_file($web_path . 'update.ver');
+  $version_current = $settings_current['ENGINE2']['versionid'];
 }
 
-
-if($version_new > $version_current){
-  
+logg("Versions: new ($version_new) vs old ($version_current)");
+if ($version_new > $version_current) {
   $settings_new = array();
-  foreach ($settings as $name => $section){
-	//var_dump($section);
-	if(isset($section['file'])){
-		if (isset($section['language']) && $section['language'] != $ru) continue;
-		//echo 'Going to download ' .$section['file'];
-		download($section['file'], $tmp_path);
-		if( filesize($tmp_path . basename($section['file'])) != $section['size']) err("Checksum error in file: " . basename($section['file']));
-		//var_dump($name);exit;
-                $section['file'] =  basename($section['file']);
-		$settings_new[$name] = $section;
-	}
+  $filescount_total = 0;
+  $filescount_download = 0;
+  $filescount_keeped = 0;
+  foreach ($settings as $name => $section) {
+    //var_dump($section);
+    if (isset($section['file'])) {
+      if (isset($section['language']) && $section['language'] != $ru) continue;
+
+      $filescount_total++;
+      $file_url = $section['file'];
+      $file_name = basename($file_url);
+      $filesize_ini = $section['size'];
+      $filesize_old = 0;
+      $filesize_url = url_size($file_url);
+      if (is_file($web_path . $file_name)) {
+        $filesize_old = filesize($web_path . $file_name);
+      }
+
+      if ($filesize_url != $filesize_old) {
+        logg("Going to download '$file_name' on size diff (old: $filesize_old, url: $filesize_url, ini: $filesize_ini)");
+        download($file_url, $tmp_path);
+        $filescount_download++;
+        $filesize_new = filesize($tmp_path . $file_name);
+      } else {
+        logg("Keep old '$file_name' on file size equal (old: $filesize_old, url: $filesize_url, ini: $filesize_ini)");
+        $filescount_keeped++;
+        $filesize_new = $filesize_old;
+      }
+
+      if ($filesize_new != $filesize_url) {
+        err("Checksum error in file '$file_name': real($filesize_new) vs url($filesize_url)");
+      }
+
+      //var_dump($name);exit;
+      $section['file'] =  $file_name;
+      $settings_new[$name] = $section;
+    }
+  }//foreach
+  //var_dump($settings_new);
+  logg("Processing new settings done (total: $filescount_total; $download: $filescount_download; keeped: $filescount_keeped)!");
+
+  logg("Creating new update.ver");
+  $settings_file = '';
+  foreach ($settings_new as $name => $section) {
+    $settings_file .= '[' . $name . "]\n";
+    foreach ($section as $key => $value ) {
+      $settings_file .= $key . '=' . $value . "\n";
+    }
   }
-//var_dump($settings_new);
-//echo "New settings done!\n";
-$settings_file = '';
-foreach ($settings_new as $name => $section) {
-	$settings_file .= '[' . $name . "]\n";
-	foreach ($section as $key => $value ) {
-		$settings_file .= $key . '=' . $value . "\n";
-	}
-}
+  $resource = fopen($tmp_path . 'update.ver', 'w');
+  //echo "Resource for update.ver $resource\n";
+  $ret = fwrite($resource, $settings_file);
+  if ($ret === false) {
+    err("Cannot create new update.ver!!!");
+  }
+  //var_dump($settings_file);
+  logg("New settings writed!");
 
-//echo "Creating new update.ver\n";
-$resource = fopen($tmp_path . 'update.ver', 'w');
-//echo "Resource for update.ver $resource\n";
-$ret = fwrite($resource, $settings_file);
-if($ret === false) err("Cannot create new update.ver!!!");
-//var_dump($settings_file);
-//echo "New settings writed!\n";
+/*
+  logg("Clear $web_path");
+  chkpath($web_path);
+  $resource = opendir($web_path);
+  echo "Resource for $web_path $resource\n";
+  while (false !== ($file = readdir($resource))) {
+    if($file != '.' && $file != '..') unlink($web_path . $file);
+  }
+*/
 
-    chkpath($web_path);
-	$resource = opendir($web_path);
-	//echo "Resource for $web_path $resource\n";
-	while (false !== ($file = readdir($resource))) {
-       if($file != '.' && $file != '..') unlink($web_path . $file);
+  logg("Copy new files from $tmp_path to $web_path");
+  chkpath($web_path);
+  chkpath($tmp_path);
+  $resource = opendir($tmp_path);
+  while (false !== ($file_name = readdir($resource))) {
+    if ($file_name != '.' && $file_name != '..' && $file_name != 'arc' && $file_name != 'log') {
+      $file_name_web = $web_path . $file_name;
+      $file_name_tmp = $tmp_path . $file_name;
+      logg("Copy $file_name");
+      if (is_file($file_name_web)) {
+        unlink($file_name_web);
+      }
+      rename($file_name_tmp, $file_name_web);
     }
-    
-    chkpath($web_path);
-    $resource = opendir($tmp_path);
-    while (false !== ($file = readdir($resource))) {
-    	if($file != '.' && $file != '..' && $file != 'arc') rename($tmp_path . $file, $web_path . $file);
-    }
-    //echo "Done!\n";
-}
+  }
+  echo "Done!\n";
+}//if ($version_new > $version_current)
 
 
 //var_dump($host);
@@ -141,22 +188,30 @@ function chkpath($path){
 
 
 function download($file, $dir){
-	global $proto, $user, $pass, $srv;
-	chkpath($dir);
-	//var_dump($proto . $user . ':' . $pass . '@' . $srv . '/' . $file);
-	exec('wget ' . $proto . $user . ':' . $pass . '@' . $srv . '/' . $file .' -O ' . $dir. '/' . basename($file) . ' -a '.  $dir . '/dl.log', $out, $ret);
-	//var_dump($out);
-	//var_dump($ret);
-	//exit();
-	
+  global $proto, $user, $pass, $srv;
+  chkpath($dir);
+  //logg('<--' . $file);
+  //var_dump($proto . $user . ':' . $pass . '@' . $srv . '/' . $file);
+  exec('wget ' . $proto . $user . ':' . $pass . '@' . $srv . '/' . $file .' -O ' . $dir. '/' . basename($file) . ' -a '.  $dir . '/dl.log', $out, $ret);
+  //var_dump($out);
+  //var_dump($ret);
+  //exit();
 }
 
-/**
- *  Провверка существования пути
- *
-//chkpath($tmp_path);
-
-
+function url_size($file) {
+  global $proto, $user, $pass, $srv;
+  //http://php.net/manual/ru/function.get-headers.php
+  stream_context_set_default(
+    array(
+        'http' => array(
+            'method' => 'HEAD'
+        )
+    )
+  );
+  $headers = get_headers($proto . $user . ':' . $pass . '@' . $srv . '/' . $file, 1);
+  //var_dump($headers);exit();
+  return intval($headers['Content-Length']);
+}
 
 /*
 $h = fopen($tmp_path . '/log', 'w+');
@@ -171,17 +226,19 @@ $arr = parse_ini_file('update.ver4', TRUE, INI_SCANNER_RAW);
 
 
 function err($message){
-	global $tmp_path;
-	if(is_file($tmp_path . 'error.log')) unlink($tmp_path . 'error.log');
-	error_log($message . ". File: " . __FILE__ . ' on line: ' . __LINE__ . ' on ' . date('d/m/Y H:i:s'), 3, $tmp_path . 'error.log'); 
+  global $tmp_path;
+  //if(is_file($tmp_path . 'error.log')) unlink($tmp_path . 'error.log');
+  error_log($message . ". File: " . __FILE__ . ' on line: ' . __LINE__ . ' on ' . date('Y-m-d H:i:s') . '\n', 3, $tmp_path . 'error.log'); 
+  logg("ERR: " . $message);
 }
 
-
-
-
+function logg($msg) {
+  global $tmp_path;
+  echo $msg . "\n";
+  error_log($msg . "\n", 3, $tmp_path . 'log/' . date('Y_m_d_h_i') . '.log');
+}
 
 //echo($arr['HOSTS']['Other']);
 
 //var_dump(get_defined_vars());
 ?>
-
