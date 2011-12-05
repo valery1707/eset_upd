@@ -131,7 +131,7 @@ if ($version_new > $version_current) {
         $filesize_old = filesize($web_path . $file_name);
       }
 
-      if ($filesize_url != $filesize_old) {
+      if ( ($filesize_url != $filesize_old) && ($filesize_url > 0) ) {
         logg("Going to download '$file_name' on size diff (old: $filesize_old, url: $filesize_url, ini: $filesize_ini)");
         download($file_url, $tmp_path);
         $files_count_download++;
@@ -144,7 +144,7 @@ if ($version_new > $version_current) {
         $files_size_keeped += $filesize_new;
       }
 
-      if ($filesize_new != $filesize_url) {
+      if ( ($filesize_new != $filesize_url) && ($filesize_url > 0) ) {
         err("Checksum error in file '$file_name': real($filesize_new) vs url($filesize_url)");
       }
 
@@ -239,6 +239,11 @@ function url_size($file) {
   );
   $headers = get_headers($proto . $user . ':' . $pass . '@' . $srv . '/' . $file, 1);
   //var_dump($headers);exit();
+  $res_code = $headers[0];
+  if (strpos($res_code, "200") === false) {
+    //Not found code 200
+    return -1;
+  }
   return intval($headers['Content-Length']);
 }
 
