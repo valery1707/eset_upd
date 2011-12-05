@@ -2,9 +2,21 @@
 
 $user = '';
 $pass = '';
+$tmp_path = '';
+$web_path = '';
 
-$tmp_path = '/home/valery1707/nod32/mirror_4_file/';
-$web_path = '/home/valery1707/nod32/mirror_4_web/';
+$config_file = dirname(__FILE__) . '/config.ini';
+if (is_file($config_file)) {
+  $config = load_ini_file($config_file);
+  $user = $config['auth']['user'];
+  $pass = $config['auth']['pass'];
+  $tmp_path = $config['path']['tmp'];
+  $web_path = $config['path']['web'];
+  //var_dump($config);exit();
+  //logg("user:$user\npass:$pass\ntmp_path:$tmp_path\nweb_path:$web_path\n");exit();
+} else {
+  die("Please create '$config_file' from '$config_file.sample'.\n");
+}
 
 
 $srv = 'http://um10.eset.com/eset_upd/v5/';
@@ -235,7 +247,11 @@ function err($message){
 function logg($msg) {
   global $tmp_path;
   echo $msg . "\n";
-  error_log($msg . "\n", 3, $tmp_path . 'log/' . date('Y_m_d_h_i') . '.log');
+  $log_file = $tmp_path . 'log/' . date('Y_m_d_h_i') . '.log';
+  $log_dir = dirname($log_file);
+  if (is_dir($log_dir)) {
+    error_log($msg . "\n", 3, $log_file);
+  }
 }
 
 //echo($arr['HOSTS']['Other']);
