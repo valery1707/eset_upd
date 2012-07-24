@@ -5,7 +5,7 @@ $pass = '';
 $tmp_path = '';
 $web_path = '';
 $log_name = date('Y_m_d_H_i') . '.log';
-$log_dir = '';
+$log_dir = 'log/';
 $err_path = 'last_error.log';
 
 $config_file = dirname(__FILE__) . '/config.ini';
