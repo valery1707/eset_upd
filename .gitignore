@@ -2,4 +2,4 @@
 .buildpath
 .settings
 config.ini
-
+log/*.log
