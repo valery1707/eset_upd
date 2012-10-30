@@ -116,7 +116,7 @@ if(is_file($web_path . 'update.ver')) {
   $version_current = $settings_current['ENGINE2']['versionid'];
 }
 
-logg("Versions: new ($version_new) vs old ($version_current)");
+logg("Versions: old ($version_current) vs new ($version_new)");
 if ($version_new > $version_current) {
   $settings_new = array();
   $files_count_total = 0;
