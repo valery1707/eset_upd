@@ -3,3 +3,5 @@
 .settings
 config.ini
 log/*.log
+.idea/
+target/
