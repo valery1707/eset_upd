@@ -21,9 +21,6 @@ public class Configuration {
     @ConfigurationPath(path = "path.web", type = ConfigurationType.DIRECTORY)
     private String pathWeb;
 
-    @ConfigurationPath(path = "path.log", type = ConfigurationType.DIRECTORY)
-    private String pathLog;
-
     public Configuration(File file) throws InvalidConfigurationException {
         try {
             Ini ini = new Ini(file);
@@ -80,9 +77,5 @@ public class Configuration {
 
     public String getPathWeb() {
         return pathWeb;
-    }
-
-    public String getPathLog() {
-        return pathLog;
     }
 }
