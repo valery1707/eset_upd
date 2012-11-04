@@ -39,7 +39,7 @@ public class Configuration {
                 String[] paths = annotation.path().split("\\.");
                 String value = ini.get(paths[0], paths[1]);
                 try {
-                    setFieldValue(field, annotation.type(), value);
+                    setFieldValue(field, annotation, value);
                 } catch (IllegalAccessException ignored) {
                 } catch (InvalidConfigurationException e) {
                     //todo Cummulative error
@@ -49,12 +49,15 @@ public class Configuration {
         }
     }
 
-    private void setFieldValue(Field field, ConfigurationType type, String value) throws IllegalAccessException, InvalidConfigurationException {
-        switch (type) {
+    private void setFieldValue(Field field, ConfigurationPath ann, String value) throws IllegalAccessException, InvalidConfigurationException {
+        switch (ann.type()) {
             case STRING:
                 field.set(this, value);
                 break;
             case DIRECTORY:
+                if (value == null) {
+                    throw new InvalidConfigurationException("Invalid value for file-property " + ann.path());
+                }
                 File file = new File(value);
                 if (file.exists() && file.isDirectory() && file.canWrite()) {
                     field.set(this, file);
@@ -63,7 +66,7 @@ public class Configuration {
                 }
                 break;
             default:
-                throw new InvalidConfigurationException("Unknown configuration type: " + type);
+                throw new InvalidConfigurationException("Unknown configuration type: " + ann.type());
         }
     }
 
