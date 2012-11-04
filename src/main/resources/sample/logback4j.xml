@@ -13,6 +13,9 @@
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>./log/{byMinute}.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
@@ -26,11 +29,14 @@
         LOCAL0, LOCAL1, LOCAL2, LOCAL3, LOCAL4, LOCAL5, LOCAL6, LOCAL7. Case is not important.-->
         <facility>CRON</facility>
         <suffixPattern>%msg</suffixPattern>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
     </appender>
 
     <!--<logger name="chapters.configuration" level="INFO"/>-->
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
         <!--<appender-ref ref="SYSLOG"/>-->
