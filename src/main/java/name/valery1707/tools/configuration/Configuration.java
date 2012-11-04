@@ -37,29 +37,33 @@ public class Configuration {
             ConfigurationPath annotation = field.getAnnotation(ConfigurationPath.class);
             if (annotation != null) {
                 String[] paths = annotation.path().split("\\.");
-                String section = paths[0];
-                String option = paths[1];
-                String value = ini.get(section, option);
+                String value = ini.get(paths[0], paths[1]);
                 try {
-                    switch (annotation.type()) {
-                        case STRING:
-                            field.set(this, value);
-                            break;
-                        case DIRECTORY:
-                            File file = new File(value);
-                            if (file.exists() && file.isDirectory() && file.canWrite()) {
-                                field.set(this, file);
-                            } else {
-                                //todo Cummulative error
-                                throw new InvalidConfigurationException("Not writable directory: " + file.getAbsolutePath());
-                            }
-                            break;
-                        default:
-                            throw new InvalidConfigurationException("Unknown configuration type: " + annotation.type());
-                    }
+                    setFieldValue(field, annotation.type(), value);
                 } catch (IllegalAccessException ignored) {
+                } catch (InvalidConfigurationException e) {
+                    //todo Cummulative error
+                    throw e;
                 }
             }
+        }
+    }
+
+    private void setFieldValue(Field field, ConfigurationType type, String value) throws IllegalAccessException, InvalidConfigurationException {
+        switch (type) {
+            case STRING:
+                field.set(this, value);
+                break;
+            case DIRECTORY:
+                File file = new File(value);
+                if (file.exists() && file.isDirectory() && file.canWrite()) {
+                    field.set(this, file);
+                } else {
+                    throw new InvalidConfigurationException("Not writable directory: " + file.getAbsolutePath());
+                }
+                break;
+            default:
+                throw new InvalidConfigurationException("Unknown configuration type: " + type);
         }
     }
 
