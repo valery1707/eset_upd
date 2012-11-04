@@ -1,9 +1,14 @@
 package name.valery1707.tools;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +32,7 @@ public class EsetUpdater {
     public void run() {
         System.out.println("Running at: " + rootDir.getAbsolutePath());
         extractSamples(rootDir);
+        configureLogging(new File(rootDir, "logback4j.xml"));
     }
 
     private void extractSamples(File targetDir) {
@@ -48,6 +54,21 @@ public class EsetUpdater {
         } catch (IOException e) {
             throw new RuntimeException("Exception while reading files.txt", e);
         }
+    }
+
+    private void configureLogging(File configuration) {
+        // assume SLF4J is bound to logback in the current environment
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        try {
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(context);
+            // Call context.reset() to clear any previous configuration, e.g. default configuration
+            context.reset();
+            configurator.doConfigure(configuration);
+        } catch (JoranException je) {
+            // StatusPrinter will handle this
+        }
+        StatusPrinter.printInCaseOfErrorsOrWarnings(context);
     }
 
     private static File detectRootDir() {
