@@ -30,7 +30,7 @@ public class Updater implements Closeable {
     public void run() {
         File localFile = new File(configuration.getPathWeb(), "update.ver");
         Integer localVersion = canReadFile(localFile) ? new EsetDbInfo(localFile).getEngineVersion() : 0;
-        EsetDbInfo remoteInfo = new EsetDbInfo(download("/eset_upd/v4/update.ver"));//todo To configuration: eset_upd, 4?
+        EsetDbInfo remoteInfo = new EsetDbInfo(download(configuration.getDbUrl()));
         Integer remoteVersion = remoteInfo.getEngineVersion();
         log.info("Versions: local ({}) vs remote ({})", localVersion, remoteVersion);
         if (localVersion >= remoteVersion) {
@@ -38,7 +38,7 @@ public class Updater implements Closeable {
             return;
         }
 
-        List<FileInfo> files = remoteInfo.getFiles();
+        List<FileInfo> files = remoteInfo.getFiles(configuration.getDbLangs());
         Map<FileInfo, File> downloaded = new HashMap<FileInfo, File>(files.size());
 
         log.info("Downloading different files");

@@ -8,6 +8,10 @@ import java.io.File;
 import static name.valery1707.tools.Utils.canReadFile;
 
 public class FileInfo implements Comparable<FileInfo> {
+    public static final String OPT_FILE = "file";
+    public static final String OPT_SIZE = "size";
+    public static final String OPT_LANG = "language";
+
     private final String sectionName;
     private final Profile.Section section;
 
@@ -25,7 +29,7 @@ public class FileInfo implements Comparable<FileInfo> {
     }
 
     public String getUrl() {
-        return section.get("file");
+        return section.get(OPT_FILE);
     }
 
     public String getFilename() {
@@ -38,7 +42,7 @@ public class FileInfo implements Comparable<FileInfo> {
     }
 
     public long sizeIni() {
-        return section.get("size", Long.class);
+        return section.get(OPT_SIZE, Long.class);
     }
 
     @Override

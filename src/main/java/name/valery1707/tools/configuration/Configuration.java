@@ -6,6 +6,8 @@ import org.ini4j.InvalidFileFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
 
 public class Configuration {
 
@@ -29,6 +31,12 @@ public class Configuration {
 
     @ConfigurationPath(path = "remote.maxRetries", def = "2", type = ConfigurationType.INTEGER)
     private Integer maxRetries;
+
+    @ConfigurationPath(path = "db.version", def = "5", type = ConfigurationType.INTEGER)
+    private Integer dbVersion;
+
+    @ConfigurationPath(path = "db.langs", def = "1049")
+    private String dbLangs;
 
     public Configuration(File file) throws InvalidConfigurationException {
         try {
@@ -119,5 +127,17 @@ public class Configuration {
 
     public Integer getMaxRetries() {
         return maxRetries;
+    }
+
+    public Integer getDbVersion() {
+        return dbVersion;
+    }
+
+    public String getDbUrl() {
+        return String.format("/eset_upd/v%d/update.ver", getDbVersion());
+    }
+
+    public List<String> getDbLangs() {
+        return Arrays.asList(dbLangs.split(",\\s*"));
     }
 }
