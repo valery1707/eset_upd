@@ -41,21 +41,8 @@ public class EsetUpdater {
         System.out.println("Home directory: " + rootDir.getAbsolutePath());
         extractSamples(rootDir);
         configureLogging(new File(rootDir, "logback4j.xml"));
-        try {
-            configuration = new Configuration(new File(rootDir, "config.ini"));
-        } catch (InvalidConfigurationException e) {
-            log.error("Error in configuration", e);
-            System.out.println("Error in configuration: " + e.getMessage());
-            System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
-        }
-        Updater updater = new Updater(configuration);
-        try {
-            updater.run();
-        } catch (Throwable t) {
-            log.error("Error: ", t);
-        } finally {
-            closeQuietly(updater);
-        }
+        loadConfiguration();
+        runUpdater();
     }
 
     private void extractSamples(File targetDir) {
@@ -92,6 +79,27 @@ public class EsetUpdater {
             // StatusPrinter will handle this
         }
         StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+    }
+
+    private void loadConfiguration() {
+        try {
+            configuration = new Configuration(new File(rootDir, "config.ini"));
+        } catch (InvalidConfigurationException e) {
+            log.error("Error in configuration", e);
+            System.out.println("Error in configuration: " + e.getMessage());
+            System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
+        }
+    }
+
+    private void runUpdater() {
+        Updater updater = new Updater(configuration);
+        try {
+            updater.run();
+        } catch (Throwable t) {
+            log.error("Error: ", t);
+        } finally {
+            closeQuietly(updater);
+        }
     }
 
     private static File detectRootDir() {
