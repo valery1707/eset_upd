@@ -4,10 +4,13 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import name.valery1707.tools.configuration.Configuration;
+import name.valery1707.tools.configuration.InvalidConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.CharEncoding;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -17,12 +20,15 @@ import java.io.UnsupportedEncodingException;
 
 public class EsetUpdater {
 
+    private static final int EXIT_STATUS_ERROR_IN_CONFIGURATION = 1;
+
     public static void main(String[] args) {
         EsetUpdater esetUpdater = new EsetUpdater();
         esetUpdater.run();
     }
 
     private final File rootDir;
+    private Configuration configuration;
 
     public EsetUpdater() {
         rootDir = detectRootDir();
@@ -33,6 +39,13 @@ public class EsetUpdater {
         System.out.println("Home directory: " + rootDir.getAbsolutePath());
         extractSamples(rootDir);
         configureLogging(new File(rootDir, "logback4j.xml"));
+        try {
+            configuration = new Configuration(new File(rootDir, "config.ini"));
+        } catch (InvalidConfigurationException e) {
+            log.error("Error in configuration", e);
+            System.out.println("Error in configuration: " + e.getMessage());
+            System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
+        }
     }
 
     private void extractSamples(File targetDir) {
@@ -79,4 +92,6 @@ public class EsetUpdater {
             return new File(System.getProperty("user.dir")).getAbsoluteFile();
         }
     }
+
+    private static final Logger log = LoggerFactory.getLogger(EsetUpdater.class);
 }
