@@ -16,10 +16,10 @@ public class Configuration {
     private String password;
 
     @ConfigurationPath(path = "path.tmp", type = ConfigurationType.DIRECTORY)
-    private String pathTmp;
+    private File pathTmp;
 
     @ConfigurationPath(path = "path.web", type = ConfigurationType.DIRECTORY)
-    private String pathWeb;
+    private File pathWeb;
 
     public Configuration(File file) throws InvalidConfigurationException {
         try {
@@ -75,11 +75,11 @@ public class Configuration {
         return password;
     }
 
-    public String getPathTmp() {
+    public File getPathTmp() {
         return pathTmp;
     }
 
-    public String getPathWeb() {
+    public File getPathWeb() {
         return pathWeb;
     }
 }
