@@ -30,7 +30,7 @@ public class EsetUpdater {
     }
 
     public void run() {
-        System.out.println("Running at: " + rootDir.getAbsolutePath());
+        System.out.println("Home directory: " + rootDir.getAbsolutePath());
         extractSamples(rootDir);
         configureLogging(new File(rootDir, "logback4j.xml"));
     }
