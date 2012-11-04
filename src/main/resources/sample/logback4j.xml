@@ -12,7 +12,7 @@
     <timestamp key="byMinute" datePattern="yyyy_MM_dd__HH_mm"/>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>./log/{byMinute}.log</file>
+        <file>./log/${byMinute}.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
