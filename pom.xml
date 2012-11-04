@@ -106,6 +106,7 @@
             </plugin>
 
             <plugin>
+                <!--https://github.com/github/maven-plugins-->
                 <groupId>com.github.github</groupId>
                 <artifactId>downloads-maven-plugin</artifactId>
                 <version>0.5</version>
