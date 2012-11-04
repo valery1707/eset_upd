@@ -41,7 +41,7 @@ public class Updater implements Closeable {
         List<FileInfo> files = remoteInfo.getFiles();
         Map<FileInfo, File> downloaded = new HashMap<FileInfo, File>(files.size());
 
-        //Downloading different files
+        log.info("Downloading different files");
         long sizeDownloaded = 0;
         long sizeKeeped = 0;
         int pos = 0;
@@ -61,11 +61,11 @@ public class Updater implements Closeable {
             }
         }
 
-        //Save new DB file
+        log.info("Save new DB file");
         EsetDbInfo localInfo = new EsetDbInfo(files);
         store(localInfo, localFile);
 
-        //Move downloaded files
+        log.info("Move downloaded files");
         for (FileInfo file : downloaded.keySet()) {
             move(downloaded.get(file), new File(configuration.getPathWeb(), file.getFilename()));
         }
