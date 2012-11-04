@@ -21,6 +21,15 @@ public class Configuration {
     @ConfigurationPath(path = "path.web", type = ConfigurationType.DIRECTORY)
     private File pathWeb;
 
+    @ConfigurationPath(path = "remote.host", def = "update.eset.com")
+    private String remoteHost;
+
+    @ConfigurationPath(path = "remote.protocol", def = "http")
+    private String remoteProtocol;
+
+    @ConfigurationPath(path = "remote.maxRetries", def = "2", type = ConfigurationType.INTEGER)
+    private Integer maxRetries;
+
     public Configuration(File file) throws InvalidConfigurationException {
         try {
             Ini ini = new Ini(file);
@@ -38,6 +47,9 @@ public class Configuration {
             if (annotation != null) {
                 String[] paths = annotation.path().split("\\.");
                 String value = ini.get(paths[0], paths[1]);
+                if (value == null) {
+                    value = annotation.def();
+                }
                 try {
                     setFieldValue(field, annotation, value);
                 } catch (IllegalAccessException ignored) {
@@ -65,6 +77,9 @@ public class Configuration {
                     throw new InvalidConfigurationException("Not writable directory: " + file.getAbsolutePath());
                 }
                 break;
+            case INTEGER:
+                field.set(this, Integer.parseInt(value));
+                break;
             default:
                 throw new InvalidConfigurationException("Unknown configuration type: " + ann.type());
         }
@@ -84,5 +99,25 @@ public class Configuration {
 
     public File getPathWeb() {
         return pathWeb;
+    }
+
+    public String getRemoteHost() {
+        return remoteHost;
+    }
+
+    public String getRemoteProtocol() {
+        return remoteProtocol;
+    }
+
+    public boolean isRemoteProtocolHTTP() {
+        return "HTTP".equalsIgnoreCase(remoteProtocol);
+    }
+
+    public int getRemotePort() {
+        return isRemoteProtocolHTTP() ? 80 : 443;
+    }
+
+    public Integer getMaxRetries() {
+        return maxRetries;
     }
 }

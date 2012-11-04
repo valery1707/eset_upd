@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
+import static name.valery1707.tools.Utils.closeQuietly;
+
 public class EsetUpdater {
 
     private static final int EXIT_STATUS_ERROR_IN_CONFIGURATION = 1;
@@ -45,6 +47,14 @@ public class EsetUpdater {
             log.error("Error in configuration", e);
             System.out.println("Error in configuration: " + e.getMessage());
             System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
+        }
+        Updater updater = new Updater(configuration);
+        try {
+            updater.run();
+        } catch (Throwable t) {
+            log.error("Error: ", t);
+        } finally {
+            closeQuietly(updater);
         }
     }
 

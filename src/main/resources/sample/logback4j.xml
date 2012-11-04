@@ -34,7 +34,7 @@
         </filter>
     </appender>
 
-    <!--<logger name="chapters.configuration" level="INFO"/>-->
+    <logger name="org.apache.http" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>

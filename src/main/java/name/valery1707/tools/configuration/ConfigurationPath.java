@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface ConfigurationPath {
     String path();
     ConfigurationType type() default ConfigurationType.STRING;
+    String def() default "";
 }
