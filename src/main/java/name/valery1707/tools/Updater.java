@@ -47,7 +47,7 @@ public class Updater implements Closeable {
         int pos = 0;
         for (FileInfo file : files) {
             pos++;
-            String posInfo = String.format("% 2d/% 2d", pos, files.size());
+            String posInfo = String.format("%3d/%3d", pos, files.size());
             FileSizeInfo size = new FileSizeInfo(file.sizeLocal(configuration.getPathWeb()), file.sizeIni(), downloader.size(file.getUrl()));
             if (size.isSizeDiffers()) {
                 log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
