@@ -7,7 +7,7 @@ import java.io.File;
 
 import static name.valery1707.tools.Utils.canReadFile;
 
-public class FileInfo {
+public class FileInfo implements Comparable<FileInfo> {
     private final String sectionName;
     private final Profile.Section section;
 
@@ -39,5 +39,10 @@ public class FileInfo {
 
     public long sizeIni() {
         return section.get("size", Long.class);
+    }
+
+    @Override
+    public int compareTo(FileInfo o) {
+        return this.sectionName.compareToIgnoreCase(o.getSectionName());
     }
 }

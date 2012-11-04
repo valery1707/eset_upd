@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static name.valery1707.tools.Utils.*;
@@ -49,13 +50,14 @@ public class EsetDbInfo extends Ini {
     }
 
     public List<FileInfo> getFiles() {
-        ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+        List<FileInfo> list = new ArrayList<FileInfo>();
         for (Entry<String, Section> section : this.entrySet()) {
             if (section.getValue().containsKey("file")) {
                 //todo skip non Russian files
                 list.add(new FileInfo(section.getKey(), section.getValue()));
             }
         }
+        Collections.sort(list);
         return list;
     }
 }
