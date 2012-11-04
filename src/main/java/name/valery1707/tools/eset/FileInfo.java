@@ -32,8 +32,12 @@ public class FileInfo implements Comparable<FileInfo> {
         return section.get(OPT_FILE);
     }
 
+    public boolean isLocalized() {
+        return section.containsKey(OPT_LANG);
+    }
+
     public String getFilename() {
-        return FilenameUtils.getName(getUrl());
+        return (isLocalized() ? section.get(OPT_LANG) + "/" : "") + FilenameUtils.getName(getUrl());
     }
 
     public long sizeLocal(File dir) {
@@ -42,7 +46,7 @@ public class FileInfo implements Comparable<FileInfo> {
     }
 
     public long sizeIni() {
-        return section.get(OPT_SIZE, Long.class);
+        return section.get(OPT_SIZE, Long.class, -1L);
     }
 
     @Override
