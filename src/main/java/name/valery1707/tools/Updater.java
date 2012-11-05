@@ -55,7 +55,7 @@ public class Updater implements Closeable {
                 sizeDownloaded += fileContent.length();
                 //todo check Size
                 downloaded.put(file, fileContent);
-            } else {
+            } else {//todo count inaccessable files (remote size < 0)
                 log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
                 sizeKeeped += size.getLocal();
             }
