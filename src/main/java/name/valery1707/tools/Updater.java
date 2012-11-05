@@ -31,7 +31,12 @@ public class Updater implements Closeable {
         File localFile = new File(configuration.getPathWeb(), "update.ver");
         Integer localVersion = canReadFile(localFile) ? new EsetDbInfo(localFile).getEngineVersion() : 0;
         EsetDbInfo remoteInfo = new EsetDbInfo(download(configuration.getDbUrl()));
+        if (remoteInfo.isEmptyDb()) {
+            log.warn("Downloaded empty update.ver");
+            return;
+        }
         Integer remoteVersion = remoteInfo.getEngineVersion();
+        //todo Download from random host
         log.info("Versions: local ({}) vs remote ({})", localVersion, remoteVersion);
         if (localVersion >= remoteVersion) {
             log.info("Done");

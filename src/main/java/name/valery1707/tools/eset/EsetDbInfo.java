@@ -45,6 +45,10 @@ public class EsetDbInfo extends Ini {
         }
     }
 
+    public boolean isEmptyDb() {
+        return containsKey("LB");
+    }
+
     public Integer getEngineVersion() {
         Integer value = get("ENGINE2", "versionid", Integer.class);
         checkArgument(value != null, "Incorrect update.ver format: empty value in ENGINE2@versionid");
