@@ -21,8 +21,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static name.valery1707.tools.Utils.propagate;
-
 public class Downloader implements Closeable {
     private final Configuration configuration;
     private final HttpHost httpHost;
@@ -48,23 +46,19 @@ public class Downloader implements Closeable {
         httpClient.getConnectionManager().shutdown();
     }
 
-    public File download(String urlPart) {
+    private static final int[] GET_SCs = new int[]{HttpStatus.SC_OK};
+
+    public File download(String urlPart) throws IOException {
         log.debug("Downloading {}", urlPart);
         File file = new File(configuration.getPathTmp(), FilenameUtils.getName(urlPart));
-        try {
-            HttpResponse response = httpClient.execute(httpHost, prepareHttpRequest(new HttpGet(urlPart)));
-            HttpEntity entity = response.getEntity();
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK
-                    && entity != null) {
-                FileOutputStream outputStream = new FileOutputStream(file);
-                entity.writeTo(outputStream);//todo rewrite with logging progress to logger
-                outputStream.close();
-            } else {
-                //todo Throw Exception
-            }
-        } catch (IOException e) {
-            throw propagate(e);
-        }
+
+        HttpResponse response = execute(new HttpGet(urlPart), GET_SCs);
+        HttpEntity entity = response.getEntity();
+
+        FileOutputStream outputStream = new FileOutputStream(file);
+        entity.writeTo(outputStream);//todo rewrite with logging progress to logger
+        outputStream.close();
+
         return file;
     }
 
@@ -106,6 +100,7 @@ public class Downloader implements Closeable {
     }
 
     public <T extends HttpRequestBase> T prepareHttpRequest(T request) {
+        //todo move to configuration, and replace some parts with real values
         request.setHeader(HttpHeaders.USER_AGENT, "ESS Update (Windows; U; 32bit; VDB 12378; BPC 4.2.71.3; OS: 6.1.7601 SP 1.0 NT; CH 1.2; LNG 1049; x32c; UPD http://update.eset.com/eset_upd/v4; APP eav; BEO 1; CPU 14156; ASP 0.10; FW 0.0; PX 0; PUA 1)");
         return request;
     }

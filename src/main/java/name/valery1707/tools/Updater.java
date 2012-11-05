@@ -32,7 +32,14 @@ public class Updater implements Closeable {
     public void run() {
         File localFile = new File(configuration.getPathWeb(), "update.ver");
         Integer localVersion = canReadFile(localFile) ? new EsetDbInfo(localFile).getEngineVersion() : 0;
-        EsetDbInfo remoteInfo = new EsetDbInfo(download(configuration.getDbUrl()));
+        EsetDbInfo remoteInfo;
+        try {
+            remoteInfo = new EsetDbInfo(download(configuration.getDbUrl()));
+        } catch (IOException e) {
+            log.error("Error while download remote update.ver from " + configuration.getDbUrl(), e);
+            return;
+        }
+
         if (remoteInfo.isEmptyDb()) {
             log.warn("Downloaded empty update.ver");
             return;
@@ -142,7 +149,7 @@ public class Updater implements Closeable {
         throw new IOException(String.format("Error while downloading file: downloaded only %d of %d for %s", maxSize, sizeRemote, url));
     }
 
-    private File download(String urlPart) {
+    private File download(String urlPart) throws IOException {
         return downloader.download(urlPart);
     }
 

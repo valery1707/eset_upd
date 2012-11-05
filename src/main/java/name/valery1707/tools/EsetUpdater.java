@@ -103,6 +103,8 @@ public class EsetUpdater {
     }
 
     private static File detectRootDir() {
+        //todo -h --home: Use dir ".eset_upd" in user home
+        //todo -p --path: User user defined directory
         String classPath = System.getProperty("java.class.path");
         if (!classPath.contains(File.pathSeparator)) {
             return new File(classPath).getParentFile().getAbsoluteFile();
