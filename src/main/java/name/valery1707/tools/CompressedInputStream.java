@@ -7,14 +7,17 @@ import name.valery1707.tools.rar.InputStreamRarVolumeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static name.valery1707.tools.Utils.checkArgument;
 import static name.valery1707.tools.Utils.propagate;
+import static org.apache.commons.lang3.Validate.isTrue;
 
 public class CompressedInputStream extends BufferedInputStream {
 
@@ -73,7 +76,7 @@ public class CompressedInputStream extends BufferedInputStream {
         ZipInputStream zis = new ZipInputStream(is);
         try {
             ZipEntry zipEntry = zis.getNextEntry();
-            checkArgument(zipEntry != null && !zipEntry.isDirectory(), "Incorrect zip entry '%s'", zipEntry);
+            isTrue(zipEntry != null && !zipEntry.isDirectory(), "Incorrect zip entry '%s'", zipEntry);
         } catch (IOException ex) {
             throw propagate(ex);
         }
@@ -84,9 +87,9 @@ public class CompressedInputStream extends BufferedInputStream {
         try {
             Archive archive = new Archive(new InputStreamRarVolumeManager(is, length));
             List<FileHeader> fileHeaders = archive.getFileHeaders();
-            checkArgument(fileHeaders.size() == 1, "Incorrect rar entry count %d", fileHeaders.size());
+            isTrue(fileHeaders.size() == 1, "Incorrect rar entry count %d", fileHeaders.size());
             FileHeader fileHeader = fileHeaders.get(0);
-            checkArgument(!fileHeader.isDirectory() && !fileHeader.isEncrypted(), "Incorrect rar entry '%s'", fileHeader);
+            isTrue(!fileHeader.isDirectory() && !fileHeader.isEncrypted(), "Incorrect rar entry '%s'", fileHeader);
             return archive.getInputStream(fileHeader);
             //todo Not all stream we be closed
         } catch (RarException e) {

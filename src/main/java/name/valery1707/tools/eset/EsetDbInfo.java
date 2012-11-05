@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static name.valery1707.tools.Utils.*;
+import static name.valery1707.tools.Utils.canReadFile;
+import static name.valery1707.tools.Utils.propagate;
 import static name.valery1707.tools.eset.FileInfo.OPT_FILE;
 import static name.valery1707.tools.eset.FileInfo.OPT_LANG;
+import static org.apache.commons.lang3.Validate.isTrue;
 
 public class EsetDbInfo extends Ini {
     public EsetDbInfo(File file) {
@@ -37,7 +39,7 @@ public class EsetDbInfo extends Ini {
     }
 
     private static FileInputStream checkFile(File file) {
-        checkArgument(canReadFile(file), "Invalid file %s", file);
+        isTrue(canReadFile(file), "Invalid file %s", file);
         try {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {
@@ -51,7 +53,7 @@ public class EsetDbInfo extends Ini {
 
     public Integer getEngineVersion() {
         Integer value = get("ENGINE2", "versionid", Integer.class);
-        checkArgument(value != null, "Incorrect update.ver format: empty value in ENGINE2@versionid");
+        isTrue(value != null, "Incorrect update.ver format: empty value in ENGINE2@versionid");
         return value;
     }
 

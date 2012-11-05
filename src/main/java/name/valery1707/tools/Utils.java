@@ -10,13 +10,6 @@ public class Utils {
     private Utils() {
     }
 
-    public static void checkArgument(boolean expression, String errorMessageTemplate, Object... errorMessageArgs) {
-        if (!expression) {
-            throw new IllegalArgumentException(
-                    format(errorMessageTemplate, errorMessageArgs));
-        }
-    }
-
     public static RuntimeException propagate(Throwable throwable) {
         throw new RuntimeException(throwable);
     }
