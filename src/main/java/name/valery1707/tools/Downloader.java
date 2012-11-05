@@ -2,6 +2,7 @@ package name.valery1707.tools;
 
 import name.valery1707.tools.configuration.Configuration;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -67,17 +68,45 @@ public class Downloader implements Closeable {
         return file;
     }
 
+    private static final int[] HEAD_SCs = new int[]{HttpStatus.SC_OK, HttpStatus.SC_UNAUTHORIZED};
+
     public long size(String url) {
+        HttpResponse response = null;
         try {
-            HttpResponse response = httpClient.execute(httpHost, prepareHttpRequest(new HttpHead(url)));
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            response = execute(new HttpHead(url), HEAD_SCs);
+        } catch (IOException e) {
+            throw propagate(e);//todo remove
+        }
+        switch (response.getStatusLine().getStatusCode()) {
+            case HttpStatus.SC_OK:
                 Header len = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
                 return Long.parseLong(len.getValue());
-            } else {
+            case HttpStatus.SC_UNAUTHORIZED:
+            default:
                 return -1;
+        }
+    }
+
+    private HttpResponse execute(HttpRequestBase request, int[] successStatusCodes) throws IOException {
+        Throwable lastThrowable = null;
+        StatusLine lastStatusLine = null;
+        for (int attempt = 0; attempt < configuration.getMaxRetries(); attempt++) {
+            try {
+                HttpResponse response = httpClient.execute(httpHost, prepareHttpRequest(request));
+                lastStatusLine = response.getStatusLine();
+                int statusCode = lastStatusLine.getStatusCode();
+                if (ArrayUtils.contains(successStatusCodes, statusCode)) {
+                    return response;
+                }
+            } catch (IOException e) {
+                lastThrowable = e;
             }
-        } catch (IOException e) {
-            throw propagate(e);
+        }
+        String errorMessage = "Connection problem" + (lastStatusLine != null ? ": " + lastStatusLine.toString() : "");
+        if (lastThrowable == null) {
+            throw new IOException(errorMessage);
+        } else {
+            throw new IOException(errorMessage, lastThrowable);
         }
     }
 
