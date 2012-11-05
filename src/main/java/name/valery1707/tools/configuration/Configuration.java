@@ -50,21 +50,21 @@ public class Configuration {
     }
 
     private void loadValues(Ini ini) throws InvalidConfigurationException {
+        StringBuilder errors = new StringBuilder();
         for (Field field : this.getClass().getDeclaredFields()) {
             ConfigurationPath annotation = field.getAnnotation(ConfigurationPath.class);
             if (annotation != null) {
                 String[] paths = annotation.path().split("\\.");
-                String value = ini.get(paths[0], paths[1]);
-                if (value == null) {
-                    value = annotation.def();
-                }
+                String value = ini.get(paths[0]).get(paths[1], annotation.def());
                 try {
                     setFieldValue(field, annotation, value);
                 } catch (IllegalAccessException ignored) {
                 } catch (InvalidConfigurationException e) {
-                    //todo Cummulative error
-                    throw e;
+                    errors.append(e.getMessage()).append("\r\n");
                 }
+            }
+            if (errors.length() > 0) {
+                throw new InvalidConfigurationException(errors.toString());
             }
         }
     }
