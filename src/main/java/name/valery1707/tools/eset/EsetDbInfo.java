@@ -47,7 +47,7 @@ public class EsetDbInfo extends Ini {
 
     public Integer getEngineVersion() {
         Integer value = get("ENGINE2", "versionid", Integer.class);
-        checkArgument(value != null, "Incorrect update.ver format");
+        checkArgument(value != null, "Incorrect update.ver format: empty value in ENGINE2@versionid");
         return value;
     }
 
