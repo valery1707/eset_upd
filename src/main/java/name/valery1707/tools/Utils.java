@@ -10,6 +10,7 @@ public class Utils {
     private Utils() {
     }
 
+    //todo Check usage
     public static RuntimeException propagate(Throwable throwable) {
         throw new RuntimeException(throwable);
     }
