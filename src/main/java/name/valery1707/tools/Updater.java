@@ -62,7 +62,7 @@ public class Updater implements Closeable {
                     downloaded.put(file, fileContent);
                     stat.touch(FileStat.Type.DOWNLOADED, size);
                 } else if (size.getRemote() < 0) {
-                    log.info("{}: Skip inaccessible '{}'", posInfo, file.getFilename());
+                    log.info("{}: Skip inaccessible '{}' ({})", posInfo, file.getFilename(), file.getUrl());
                     stat.touch(FileStat.Type.INACCESSIBLE);
                 } else {
                     log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
