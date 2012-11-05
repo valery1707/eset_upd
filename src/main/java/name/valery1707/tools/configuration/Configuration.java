@@ -9,18 +9,20 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 public class Configuration {
 
-    @ConfigurationPath(path = "auth.user")
+    @ConfigurationPath(path = "auth.user", required = true)
     private String username;
 
-    @ConfigurationPath(path = "auth.pass")
+    @ConfigurationPath(path = "auth.pass", required = true)
     private String password;
 
-    @ConfigurationPath(path = "path.tmp", type = ConfigurationType.DIRECTORY)
+    @ConfigurationPath(path = "path.tmp", required = true, type = ConfigurationType.DIRECTORY)
     private File pathTmp;
 
-    @ConfigurationPath(path = "path.web", type = ConfigurationType.DIRECTORY)
+    @ConfigurationPath(path = "path.web", required = true, type = ConfigurationType.DIRECTORY)
     private File pathWeb;
 
     @ConfigurationPath(path = "remote.host", def = "update.eset.com")
@@ -57,37 +59,39 @@ public class Configuration {
                 String[] paths = annotation.path().split("\\.");
                 String value = ini.get(paths[0]).get(paths[1], annotation.def());
                 try {
-                    setFieldValue(field, annotation, value);
+                    if (isNotEmpty(value)) {
+                        field.set(this, prepareValue(annotation, value));
+                    } else {
+                        throw new InvalidConfigurationException("Empty value in required parameter");
+                    }
                 } catch (IllegalAccessException ignored) {
                 } catch (InvalidConfigurationException e) {
-                    errors.append(e.getMessage()).append("\r\n");
+                    errors.append("\r\n").append(annotation.path()).append(": ").append(e.getMessage());
                 }
             }
-            if (errors.length() > 0) {
-                throw new InvalidConfigurationException(errors.toString());
-            }
+        }
+        if (errors.length() > 0) {
+            throw new InvalidConfigurationException(errors.toString());
         }
     }
 
-    private void setFieldValue(Field field, ConfigurationPath ann, String value) throws IllegalAccessException, InvalidConfigurationException {
+    private Object prepareValue(ConfigurationPath ann, String value) throws InvalidConfigurationException {
         switch (ann.type()) {
             case STRING:
-                field.set(this, value);
-                break;
+                return value;
             case DIRECTORY:
-                if (value == null) {
-                    throw new InvalidConfigurationException("Invalid value for file-property " + ann.path());
-                }
                 File file = new File(value);
                 if (file.exists() && file.isDirectory() && file.canWrite()) {
-                    field.set(this, file);
+                    return file;
                 } else {
                     throw new InvalidConfigurationException("Not writable directory: " + file.getAbsolutePath());
                 }
-                break;
             case INTEGER:
-                field.set(this, Integer.parseInt(value));
-                break;
+                try {
+                    return Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new InvalidConfigurationException("Invalid number: " + value, e);
+                }
             default:
                 throw new InvalidConfigurationException("Unknown configuration type: " + ann.type());
         }

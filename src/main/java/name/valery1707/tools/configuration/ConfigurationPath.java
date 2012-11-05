@@ -11,4 +11,5 @@ public @interface ConfigurationPath {
     String path();
     ConfigurationType type() default ConfigurationType.STRING;
     String def() default "";
+    boolean required() default false;
 }
