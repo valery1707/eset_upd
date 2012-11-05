@@ -4,6 +4,7 @@ import name.valery1707.tools.configuration.Configuration;
 import name.valery1707.tools.eset.EsetDbInfo;
 import name.valery1707.tools.eset.FileInfo;
 import name.valery1707.tools.eset.FileSizeInfo;
+import name.valery1707.tools.eset.FileStat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static name.valery1707.tools.Utils.*;
+import static name.valery1707.tools.Utils.canReadFile;
+import static name.valery1707.tools.Utils.propagate;
 import static org.apache.commons.io.FileUtils.copyFile;
 
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
@@ -47,29 +49,34 @@ public class Updater implements Closeable {
         Map<FileInfo, File> downloaded = new HashMap<FileInfo, File>(files.size());
 
         log.info("Downloading different files");
-        long sizeDownloaded = 0;
-        int countKeeped = 0;
-        long sizeKeeped = 0;
-        int countInaccessible = 0;
+        FileStat stat = new FileStat();
         int pos = 0;
         for (FileInfo file : files) {
             pos++;
             String posInfo = String.format("%3d/%3d", pos, files.size());
-            FileSizeInfo size = new FileSizeInfo(file.sizeLocal(configuration.getPathWeb()), file.sizeIni(), downloader.size(file.getUrl()));
-            if (size.isSizeDiffers()) {
-                log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
-                File fileContent = download(file.getUrl());
-                sizeDownloaded += fileContent.length();
-                //todo check Size
-                downloaded.put(file, fileContent);
-            } else if (size.getRemote() < 0) {
-                log.info("{}: Skip inaccessible '{}'", posInfo, file.getFilename());
-                countInaccessible++;
-            } else {
-                log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
-                sizeKeeped += size.getLocal();
-                countKeeped++;
+            try {
+                FileSizeInfo size = new FileSizeInfo(configuration, downloader, file);
+                if (size.isSizeDiffers()) {
+                    log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
+                    File fileContent = download(file.getUrl(), size.getRemote());
+                    downloaded.put(file, fileContent);
+                    stat.touch(FileStat.Type.DOWNLOADED, size);
+                } else if (size.getRemote() < 0) {
+                    log.info("{}: Skip inaccessible '{}'", posInfo, file.getFilename());
+                    stat.touch(FileStat.Type.INACCESSIBLE);
+                } else {
+                    log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
+                    stat.touch(FileStat.Type.KEEPED, size);
+                }
+            } catch (IOException e) {
+                log.warn("{}: Error: {}", posInfo, e.getMessage());
+                stat.touch(FileStat.Type.ERROR);
             }
+        }
+
+        if (stat.getCount(FileStat.Type.ERROR) > 0) {
+            log.warn("Get {} errors while downloading files: {}", stat.getCount(FileStat.Type.ERROR), stat);
+            return;
         }
 
         log.info("Save new DB file");
@@ -81,8 +88,7 @@ public class Updater implements Closeable {
             move(downloaded.get(file), new File(configuration.getPathWeb(), file.getFilename()));
         }
 
-        log.info("Processing new settings done (total: {}; inaccessible: {}; downloaded: {} [{}]; keeped: {} [{}])!",
-                files.size(), countInaccessible, downloaded.size(), byteCountForUser(sizeDownloaded), countKeeped, byteCountForUser(sizeKeeped));
+        log.info("Processing new settings done ({})!", stat);
     }
 
     private void store(EsetDbInfo dbInfo, File targetFile) {
@@ -116,6 +122,24 @@ public class Updater implements Closeable {
     @Override
     public void close() throws IOException {
         downloader.close();
+    }
+
+    private File download(String url, long sizeRemote) throws IOException {
+        long maxSize = 0;
+        for (int attempt = 0; attempt < configuration.getMaxRetries(); attempt++) {
+            File file = download(url);
+            long sizeLocal = file.length();
+            if (sizeLocal == sizeRemote) {
+                return file;
+            } else {
+                maxSize = Math.max(sizeLocal, maxSize);
+                if (!file.delete()) {
+                    log.warn("Could not delete temporary file " + file.getAbsolutePath());
+                }
+            }
+        }
+
+        throw new IOException(String.format("Error while downloading file: downloaded only %d of %d for %s", maxSize, sizeRemote, url));
     }
 
     private File download(String urlPart) {

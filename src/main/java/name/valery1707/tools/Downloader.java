@@ -70,13 +70,8 @@ public class Downloader implements Closeable {
 
     private static final int[] HEAD_SCs = new int[]{HttpStatus.SC_OK, HttpStatus.SC_UNAUTHORIZED};
 
-    public long size(String url) {
-        HttpResponse response = null;
-        try {
-            response = execute(new HttpHead(url), HEAD_SCs);
-        } catch (IOException e) {
-            throw propagate(e);//todo remove
-        }
+    public long size(String url) throws IOException {
+        HttpResponse response = execute(new HttpHead(url), HEAD_SCs);
         switch (response.getStatusLine().getStatusCode()) {
             case HttpStatus.SC_OK:
                 Header len = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
