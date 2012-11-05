@@ -43,7 +43,9 @@ public class Updater implements Closeable {
 
         log.info("Downloading different files");
         long sizeDownloaded = 0;
+        int countKeeped = 0;
         long sizeKeeped = 0;
+        int countInaccessible = 0;
         int pos = 0;
         for (FileInfo file : files) {
             pos++;
@@ -55,9 +57,13 @@ public class Updater implements Closeable {
                 sizeDownloaded += fileContent.length();
                 //todo check Size
                 downloaded.put(file, fileContent);
-            } else {//todo count inaccessable files (remote size < 0)
+            } else if (size.getRemote() < 0) {
+                log.info("{}: Skip inaccessible '{}'", posInfo, file.getFilename());
+                countInaccessible++;
+            } else {
                 log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
                 sizeKeeped += size.getLocal();
+                countKeeped++;
             }
         }
 
@@ -70,8 +76,8 @@ public class Updater implements Closeable {
             move(downloaded.get(file), new File(configuration.getPathWeb(), file.getFilename()));
         }
 
-        log.info("Processing new settings done (total: {}; downloaded: {} [{}]; keeped: {} [{}])!",
-                files.size(), downloaded.size(), byteCountForUser(sizeDownloaded), files.size() - downloaded.size(), byteCountForUser(sizeKeeped));
+        log.info("Processing new settings done (total: {}; inaccessible: {}; downloaded: {} [{}]; keeped: {} [{}])!",
+                files.size(), countInaccessible, downloaded.size(), byteCountForUser(sizeDownloaded), countKeeped, byteCountForUser(sizeKeeped));
     }
 
     private void store(EsetDbInfo dbInfo, File targetFile) {
