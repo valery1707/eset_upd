@@ -70,7 +70,7 @@ public class EsetDbInfo extends Ini {
 
     private boolean isFileSection(Entry<String, Section> sectionEntry) {
         Section section = sectionEntry.getValue();
-        return section.containsKey(OPT_FILE) && section.containsKey(OPT_VERSIONID);
+        return section.containsKey(OPT_FILE) && section.containsKey(OPT_SIZE);
     }
 
     private boolean isIncludedLanguage(Entry<String, Section> sectionEntry, List<String> langs) {
