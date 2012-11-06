@@ -41,8 +41,10 @@ public class FileInfo implements Comparable<FileInfo> {
     }
 
     public long sizeLocal(File dir) {
-        File file = new File(dir, getFilename());
-        return canReadFile(file) ? file.length() : 0L;
+        File file1 = new File(dir, getFilename());
+        File file2 = new File(dir, FilenameUtils.getName(getUrl()));
+        return canReadFile(file1) ? file1.length()
+                : (canReadFile(file2) ? file2.length() : 0L);
     }
 
     public long sizeIni() {
