@@ -11,6 +11,7 @@ public class FileInfo implements Comparable<FileInfo> {
     public static final String OPT_FILE = "file";
     public static final String OPT_SIZE = "size";
     public static final String OPT_LANG = "language";
+    public static final String OPT_VERSIONID = "versionid";
 
     private final String sectionName;
     private final Profile.Section section;

@@ -13,11 +13,11 @@ import java.util.List;
 
 import static name.valery1707.tools.Utils.canReadFile;
 import static name.valery1707.tools.Utils.propagate;
-import static name.valery1707.tools.eset.FileInfo.OPT_FILE;
-import static name.valery1707.tools.eset.FileInfo.OPT_LANG;
+import static name.valery1707.tools.eset.FileInfo.*;
 import static org.apache.commons.lang3.Validate.isTrue;
 
 public class EsetDbInfo extends Ini {
+
     public EsetDbInfo(File file) {
         super();
         //throws IOException, InvalidFileFormatException
@@ -52,7 +52,7 @@ public class EsetDbInfo extends Ini {
     }
 
     public Integer getEngineVersion() {
-        Integer value = get("ENGINE2", "versionid", Integer.class);
+        Integer value = get("ENGINE2", OPT_VERSIONID, Integer.class);
         isTrue(value != null, "Incorrect update.ver format: empty value in ENGINE2@versionid");
         return value;
     }
@@ -68,8 +68,9 @@ public class EsetDbInfo extends Ini {
         return list;
     }
 
-    private boolean isFileSection(Entry<String, Section> section) {
-        return section.getValue().containsKey(OPT_FILE);
+    private boolean isFileSection(Entry<String, Section> sectionEntry) {
+        Section section = sectionEntry.getValue();
+        return section.containsKey(OPT_FILE) && section.containsKey(OPT_VERSIONID);
     }
 
     private boolean isIncludedLanguage(Entry<String, Section> sectionEntry, List<String> langs) {
