@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 
 import static name.valery1707.tools.Utils.closeQuietly;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Validate.isTrue;
 
 public class EsetUpdater {
 
@@ -107,7 +108,9 @@ public class EsetUpdater {
         //todo -p --path: User user defined directory
         String command = System.getProperty("sun.java.command");
         if (isNotEmpty(command) && !command.contains(File.pathSeparator) && command.contains(".jar")) {
-            return new File(command).getParentFile().getAbsoluteFile();
+            File jar = command.contains(File.separator) ? new File(command) : new File("./" + command);
+            isTrue(jar.getParentFile() != null, "Invalid user path %s", jar.getAbsolutePath());
+            return jar.getParentFile().getAbsoluteFile();
         } else {
             return new File(System.getProperty("user.dir")).getAbsoluteFile();
         }
