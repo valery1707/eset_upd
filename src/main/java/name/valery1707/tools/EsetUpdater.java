@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import static name.valery1707.tools.Utils.closeQuietly;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class EsetUpdater {
 
@@ -104,9 +105,9 @@ public class EsetUpdater {
     private static File detectRootDir() {
         //todo -h --home: Use dir ".eset_upd" in user home
         //todo -p --path: User user defined directory
-        String classPath = System.getProperty("java.class.path");
-        if (!classPath.contains(File.pathSeparator)) {
-            return new File(classPath).getParentFile().getAbsoluteFile();
+        String command = System.getProperty("sun.java.command");
+        if (isNotEmpty(command) && !command.contains(File.pathSeparator) && command.contains(".jar")) {
+            return new File(command).getParentFile().getAbsoluteFile();
         } else {
             return new File(System.getProperty("user.dir")).getAbsoluteFile();
         }
