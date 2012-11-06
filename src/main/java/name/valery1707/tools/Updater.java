@@ -68,7 +68,7 @@ public class Updater implements Closeable {
                     log.info("{}: Use already downloaded file '{}' ({})", posInfo, file.getFilename(), size);
                     File fileContent = new File(configuration.getPathTmp(), FilenameUtils.getName(file.getUrl()));
                     downloaded.put(file, fileContent);
-                    stat.touch(FileStat.Type.DOWNLOADED, size);
+                    stat.touch(FileStat.Type.REUSE_FROM_TMP, size);
                 } else if (size.isNeedDownload()) {
                     log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
                     File fileContent = download(file.getUrl(), size.getRemote());
