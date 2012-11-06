@@ -159,8 +159,6 @@
                     <includes>
                         <include>*.one-jar.jar</include>
                     </includes>
-
-                    <dryRun>true</dryRun>
                 </configuration>
                 <executions>
                     <execution>
