@@ -58,6 +58,7 @@ public class Downloader implements Closeable {
         FileOutputStream outputStream = new FileOutputStream(file);
         entity.writeTo(outputStream);//todo rewrite with logging progress to logger
         outputStream.close();
+        //todo Show speed
 
         return file;
     }
