@@ -63,6 +63,7 @@ public class Updater implements Closeable {
             String posInfo = String.format("%3d/%3d", pos, files.size());
             try {
                 FileSizeInfo size = new FileSizeInfo(configuration, downloader, file);
+                //todo Use downloaded file in Temp dir
                 if (size.isSizeDiffers()) {
                     log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
                     File fileContent = download(file.getUrl(), size.getRemote());
@@ -93,6 +94,7 @@ public class Updater implements Closeable {
         log.info("Move downloaded files");
         for (FileInfo file : downloaded.keySet()) {
             move(downloaded.get(file), new File(configuration.getPathWeb(), file.getFilename()));
+            //todo Extract msi
         }
 
         log.info("Processing new settings done ({})!", stat);
