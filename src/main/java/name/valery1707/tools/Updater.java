@@ -82,7 +82,7 @@ public class Updater implements Closeable {
                     stat.touch(FileStat.Type.KEEPED, size);
                 }
             } catch (IOException e) {
-                log.warn("{}: Error: {}", posInfo, e.getMessage());
+                log.warn("{}: Error for '{}' ({}): {}", posInfo, file.getFilename(), file.getUrl(), e.getMessage());
                 stat.touch(FileStat.Type.ERROR);
             }
         }
