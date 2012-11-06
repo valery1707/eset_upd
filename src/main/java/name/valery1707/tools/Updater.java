@@ -98,7 +98,7 @@ public class Updater implements Closeable {
 
         log.info("Move downloaded files");
         for (FileInfo file : downloaded.keySet()) {
-            move(downloaded.get(file), new File(configuration.getPathWeb(), file.getFilename()));
+            move(downloaded.get(file), new File(configuration.getPathWeb(), file.getLocalizedFilename()));
             //todo Extract msi
         }
 

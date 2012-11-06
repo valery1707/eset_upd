@@ -34,7 +34,7 @@ public class EsetDbInfo extends Ini {
         for (FileInfo file : files) {
             Section section = file.getSection();
             put(file.getSectionName(), section);
-            section.put(OPT_FILE, file.getFilename());//all files stored near update.ver
+            section.put(OPT_FILE, file.getLocalizedFilename());//all files stored near update.ver
         }
     }
 

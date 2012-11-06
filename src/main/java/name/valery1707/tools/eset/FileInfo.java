@@ -37,12 +37,16 @@ public class FileInfo implements Comparable<FileInfo> {
     }
 
     public String getFilename() {
-        return (isLocalized() ? section.get(OPT_LANG) + "/" : "") + FilenameUtils.getName(getUrl());
+        return FilenameUtils.getName(getUrl());
+    }
+
+    public String getLocalizedFilename() {
+        return (isLocalized() ? section.get(OPT_LANG) + "/" : "") + getFilename();
     }
 
     public long sizeLocal(File dir) {
         File file1 = new File(dir, getFilename());
-        File file2 = new File(dir, FilenameUtils.getName(getUrl()));
+        File file2 = new File(dir, getLocalizedFilename());
         return canReadFile(file1) ? file1.length()
                 : (canReadFile(file2) ? file2.length() : 0L);
     }
