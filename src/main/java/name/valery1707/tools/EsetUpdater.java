@@ -85,7 +85,6 @@ public class EsetUpdater {
         try {
             configuration = new Configuration(new File(rootDir, "config.ini"));
         } catch (InvalidConfigurationException e) {
-            log.error("Error in configuration", e);
             System.out.println("Error in configuration: " + e.getMessage());
             System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
         }
