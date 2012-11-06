@@ -44,8 +44,16 @@ public class FileSizeInfo {
         return temp;
     }
 
-    public boolean isSizeDiffers() {
+    public boolean isStoredInTemp() {
+        return temp == remote;
+    }
+
+    public boolean isNeedDownload() {
         return remote != local && remote > 0;
+    }
+
+    public boolean isInaccessible() {
+        return remote < 0;
     }
 
     @Override

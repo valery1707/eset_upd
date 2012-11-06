@@ -5,6 +5,7 @@ import name.valery1707.tools.eset.EsetDbInfo;
 import name.valery1707.tools.eset.FileInfo;
 import name.valery1707.tools.eset.FileSizeInfo;
 import name.valery1707.tools.eset.FileStat;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,13 +64,17 @@ public class Updater implements Closeable {
             String posInfo = String.format("%3d/%3d", pos, files.size());
             try {
                 FileSizeInfo size = new FileSizeInfo(configuration, downloader, file);
-                //todo Use downloaded file in Temp dir
-                if (size.isSizeDiffers()) {
+                if (size.isStoredInTemp()) {
+                    log.info("{}: Use already downloaded file '{}' ({})", posInfo, file.getFilename(), size);
+                    File fileContent = new File(configuration.getPathTmp(), FilenameUtils.getName(file.getUrl()));
+                    downloaded.put(file, fileContent);
+                    stat.touch(FileStat.Type.DOWNLOADED, size);
+                } else if (size.isNeedDownload()) {
                     log.info("{}: Going to download '{}' on size diff ({})", posInfo, file.getFilename(), size);
                     File fileContent = download(file.getUrl(), size.getRemote());
                     downloaded.put(file, fileContent);
                     stat.touch(FileStat.Type.DOWNLOADED, size);
-                } else if (size.getRemote() < 0) {
+                } else if (size.isInaccessible()) {
                     log.info("{}: Skip inaccessible '{}' ({})", posInfo, file.getFilename(), file.getUrl());
                     stat.touch(FileStat.Type.INACCESSIBLE);
                 } else {
