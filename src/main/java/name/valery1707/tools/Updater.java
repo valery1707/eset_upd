@@ -139,6 +139,7 @@ public class Updater implements Closeable {
             File file = download(url);
             long sizeLocal = file.length();
             if (sizeLocal == sizeRemote) {
+                //todo Check CRC
                 return file;
             } else {
                 maxSize = Math.max(sizeLocal, maxSize);
