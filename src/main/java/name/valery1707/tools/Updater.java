@@ -124,6 +124,9 @@ public class Updater implements Closeable {
             log.info("Could not move file {} to {}. Use content copy", src.getAbsolutePath(), dst.getAbsolutePath());
             try {
                 copyFile(src, dst, true);
+                if (!src.delete()) {
+                    log.warn("Could not delete file {}", src.getAbsolutePath());
+                }
             } catch (IOException e) {
                 log.warn("Error while copy file: ", e);
             }
