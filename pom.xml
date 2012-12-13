@@ -161,6 +161,7 @@
         </plugins>
 
         <extensions>
+            <!-- https://github.com/jcaddel/maven-s3-wagon -->
             <extension>
                 <groupId>org.kuali.maven.wagons</groupId>
                 <artifactId>maven-s3-wagon</artifactId>
