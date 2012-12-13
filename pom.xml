@@ -29,7 +29,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <github.global.server>github</github.global.server>
     </properties>
 
     <dependencies>
@@ -142,29 +141,6 @@
                         </configuration>
                         <goals>
                             <goal>one-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <!--https://github.com/github/maven-plugins-->
-                <groupId>com.github.github</groupId>
-                <artifactId>downloads-maven-plugin</artifactId>
-                <version>0.5</version>
-                <configuration>
-                    <description>${project.version} release of ${project.name}</description>
-                    <override>true</override>
-                    <includeAttached>true</includeAttached>
-                    <includes>
-                        <include>*.one-jar.jar</include>
-                    </includes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>upload</goal>
                         </goals>
                     </execution>
                 </executions>
