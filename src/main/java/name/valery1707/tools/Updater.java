@@ -63,6 +63,11 @@ public class Updater implements Closeable {
             pos++;
             String posInfo = String.format("%3d/%3d", pos, files.size());
             try {
+                if (!configuration.canProcessFile(file)) {
+                    log.info("{}: Skip excluded file '{}' (url:{}; type:{}; group:{})", posInfo, file.getFilename(), file.getUrl(), file.getType(), file.getGroup());
+                    stat.touch(FileStat.Type.EXCLUDE);
+                    continue;
+                }
                 FileSizeInfo size = new FileSizeInfo(configuration, downloader, file);
                 if (size.isStoredInTemp()) {
                     log.info("{}: Use already downloaded file '{}' ({})", posInfo, file.getFilename(), size);
@@ -75,14 +80,14 @@ public class Updater implements Closeable {
                     downloaded.put(file, fileContent);
                     stat.touch(FileStat.Type.DOWNLOADED, size);
                 } else if (size.isInaccessible()) {
-                    log.info("{}: Skip inaccessible '{}' ({})", posInfo, file.getFilename(), file.getUrl());
+                    log.info("{}: Skip inaccessible '{}' (url:{}; type:{}; group:{})", posInfo, file.getFilename(), file.getUrl(), file.getType(), file.getGroup());
                     stat.touch(FileStat.Type.INACCESSIBLE);
                 } else {
                     log.info("{}: Keep old '{}' on file size equal ({})", posInfo, file.getFilename(), size);
                     stat.touch(FileStat.Type.KEEPED, size);
                 }
             } catch (IOException e) {
-                log.warn("{}: Error for '{}' ({}): {}", posInfo, file.getFilename(), file.getUrl(), e.getMessage());
+                log.warn("{}: Error for '{}' (url:{}; type:{}; group:{}): {}", posInfo, file.getFilename(), file.getUrl(), file.getType(), file.getGroup(), e.getMessage());
                 stat.touch(FileStat.Type.ERROR);
             }
         }

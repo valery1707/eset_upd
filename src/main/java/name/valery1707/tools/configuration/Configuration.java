@@ -1,5 +1,6 @@
 package name.valery1707.tools.configuration;
 
+import name.valery1707.tools.eset.FileInfo;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 
@@ -7,11 +8,20 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class Configuration {
+
+    public static final String REMOTE_MODE_DEF = "all";
+    public static final String REMOTE_MODE_TYPE_URL = "Url";
+    public static final String REMOTE_MODE_TYPE_NAME = "Name";
+    public static final String REMOTE_MODE_TYPE_TYPE = "Type";
+    public static final String REMOTE_MODE_TYPE_GROUP = "Group";
+    public static final String[] REMOTE_MODE_TYPES = new String[]{REMOTE_MODE_TYPE_URL, REMOTE_MODE_TYPE_NAME, REMOTE_MODE_TYPE_TYPE, REMOTE_MODE_TYPE_GROUP};
 
     @ConfigurationPath(path = "auth.user", required = true)
     private String username;
@@ -34,6 +44,10 @@ public class Configuration {
     @ConfigurationPath(path = "remote.maxRetries", def = "2", type = ConfigurationType.INTEGER)
     private Integer maxRetries;
 
+    @ConfigurationPath(path = "remote.mode", def = REMOTE_MODE_DEF)
+    private String remoteMode;
+    private Map<String, RemoteModeProcessor> remoteModeProcessors = new HashMap<String, RemoteModeProcessor>(REMOTE_MODE_TYPES.length);
+
     @ConfigurationPath(path = "db.version", def = "5", type = ConfigurationType.INTEGER)
     private Integer dbVersion;
 
@@ -44,10 +58,32 @@ public class Configuration {
         try {
             Ini ini = new Ini(file);
             loadValues(ini);
+            initRemoteMode(ini);
         } catch (InvalidFileFormatException e) {
             throw new InvalidConfigurationException("Invalid file format: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new InvalidConfigurationException("IO exception:" + e.getMessage(), e);
+        }
+    }
+
+    private void initRemoteMode(Ini ini) throws InvalidConfigurationException {
+        String section = "mode_" + remoteMode;
+        boolean allMode = false;
+        if (!ini.containsKey(section)) {
+            if (remoteMode.equals(REMOTE_MODE_DEF)) {
+                allMode = true;
+            } else {
+                throw new InvalidConfigurationException("Configuration must contains section '" + section + "', with keys 'include' and 'exclude'.");
+            }
+        }
+        for (String type : REMOTE_MODE_TYPES) {
+            RemoteModeProcessor processor;
+            if (allMode) {
+                processor = new RemoteModeProcessor(".*", "");
+            } else {
+                processor = new RemoteModeProcessor(ini.get(section).get("include" + type, ".*"), ini.get(section).get("exclude" + type, ""));
+            }
+            remoteModeProcessors.put(type, processor);
         }
     }
 
@@ -131,6 +167,13 @@ public class Configuration {
 
     public Integer getMaxRetries() {
         return maxRetries;
+    }
+
+    public boolean canProcessFile(FileInfo file) {
+        return remoteModeProcessors.get(REMOTE_MODE_TYPE_URL).canProcess(file.getUrl()) &&
+                remoteModeProcessors.get(REMOTE_MODE_TYPE_NAME).canProcess(file.getFilename()) &&
+                remoteModeProcessors.get(REMOTE_MODE_TYPE_TYPE).canProcess(file.getType()) &&
+                remoteModeProcessors.get(REMOTE_MODE_TYPE_GROUP).canProcess(file.getGroup());
     }
 
     public Integer getDbVersion() {

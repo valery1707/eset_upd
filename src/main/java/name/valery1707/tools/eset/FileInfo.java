@@ -12,6 +12,8 @@ public class FileInfo implements Comparable<FileInfo> {
     public static final String OPT_SIZE = "size";
     public static final String OPT_LANG = "language";
     public static final String OPT_VERSIONID = "versionid";
+    public static final String OPT_TYPE = "type";
+    public static final String OPT_GROUP = "group";
 
     private final String sectionName;
     private final Profile.Section section;
@@ -54,6 +56,14 @@ public class FileInfo implements Comparable<FileInfo> {
 
     public long sizeIni() {
         return section.get(OPT_SIZE, Long.class, -1L);
+    }
+
+    public String getType() {
+        return section.get(OPT_TYPE, "_none_");
+    }
+
+    public String getGroup() {
+        return section.get(OPT_GROUP, "_none_");
     }
 
     @Override
