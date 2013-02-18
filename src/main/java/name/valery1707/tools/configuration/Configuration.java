@@ -117,7 +117,7 @@ public class Configuration {
                 return value;
             case DIRECTORY:
                 File file = new File(value);
-                if (file.exists() && file.isDirectory() && file.canWrite()) {
+                if ((file.exists() || file.mkdirs()) && file.isDirectory() && file.canWrite()) {
                     return file;
                 } else {
                     throw new InvalidConfigurationException("Not writable directory: " + file.getAbsolutePath());
