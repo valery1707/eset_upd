@@ -48,9 +48,6 @@ public class EsetUpdater {
     }
 
     private void extractSamples(File targetDir) {
-        if (!targetDir.isDirectory() || !targetDir.canWrite()) {
-            throw new IllegalStateException("Target directory is not directory or not writable: " + targetDir.getAbsolutePath());
-        }
         try {
             LineIterator files = IOUtils.lineIterator(getClass().getResourceAsStream("/sample/files.txt"), CharEncoding.UTF_8);
             while (files.hasNext()) {
@@ -58,6 +55,9 @@ public class EsetUpdater {
                 File targetFile = new File(targetDir, fileName);
                 InputStream sourceStream = getClass().getResourceAsStream("/sample/" + fileName);
                 if (sourceStream != null && !targetFile.exists()) {
+                    if (!targetDir.isDirectory() || !targetDir.canWrite()) {
+                        throw new IllegalStateException("Target directory is not directory or not writable: " + targetDir.getAbsolutePath());
+                    }
                     IOUtils.copy(sourceStream, FileUtils.openOutputStream(targetFile));
                 }
             }
