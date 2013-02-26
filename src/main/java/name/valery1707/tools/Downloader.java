@@ -37,7 +37,7 @@ public class Downloader implements Closeable {
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(configuration.getUsername(), configuration.getPassword());
         AuthScope authScope = new AuthScope(httpHost);
         client.getCredentialsProvider().setCredentials(authScope, credentials);
-        int maxRetries = Math.max(configuration.getMaxRetries(), 20);
+        int maxRetries = Math.min(configuration.getMaxRetries(), 20);
         return new AutoRetryHttpClient(client, new DefaultServiceUnavailableRetryStrategy(maxRetries, 1000));
     }
 
