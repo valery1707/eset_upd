@@ -93,7 +93,11 @@ public class Updater implements Closeable {
         }
 
         if (stat.getCount(FileStat.Type.ERROR) > 0) {
-            log.warn("Get {} errors while downloading files: {}", stat.getCount(FileStat.Type.ERROR), stat);
+            log.error("Get {} errors while downloading files: {}", stat.getCount(FileStat.Type.ERROR), stat);
+            return;
+        }
+        if (stat.getCount(FileStat.Type.INACCESSIBLE) > 0 && !configuration.getAllowInaccessible()) {
+            log.error("Get {} inaccessible files while downloading files: {}", stat.getCount(FileStat.Type.INACCESSIBLE), stat);
             return;
         }
 

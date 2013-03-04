@@ -54,6 +54,9 @@ public class Configuration {
     @ConfigurationPath(path = "db.langs", def = "1049")
     private String dbLangs;
 
+    @ConfigurationPath(path = "remote.allowInaccessible", def = "False", type = ConfigurationType.BOOLEAN)
+    private Boolean allowInaccessible;
+
     public Configuration(File file) throws InvalidConfigurationException {
         try {
             Ini ini = new Ini(file);
@@ -128,6 +131,8 @@ public class Configuration {
                 } catch (NumberFormatException e) {
                     throw new InvalidConfigurationException("Invalid number: " + value, e);
                 }
+            case BOOLEAN:
+                return Boolean.parseBoolean(value);
             default:
                 throw new InvalidConfigurationException("Unknown configuration type: " + ann.type());
         }
@@ -186,5 +191,9 @@ public class Configuration {
 
     public List<String> getDbLangs() {
         return Arrays.asList(dbLangs.split(",\\s*"));
+    }
+
+    public Boolean getAllowInaccessible() {
+        return allowInaccessible;
     }
 }
