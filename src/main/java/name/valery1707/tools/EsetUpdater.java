@@ -29,6 +29,7 @@ public class EsetUpdater {
 
     private static final int EXIT_STATUS_ERROR_IN_CONFIGURATION = 1;
     private static final int EXIT_STATUS_ERROR_IN_PARAMS = 2;
+	private static final String DEFAULT_HOME_DIR_NAME = ".eset_upd";
 
 	@SuppressWarnings("AccessStaticViaInstance")
 	private static final Options cliOptions = new Options()
@@ -36,8 +37,19 @@ public class EsetUpdater {
 					.withLongOpt("file")
 					.hasArg()
 					.withArgName("file")
-					.withDescription(format("Path for file with configuration, relative from .jar file location.%nDefault value: config.ini"))
+					.withDescription(format("Path for file with configuration, relative from home directory (see --home)%n" +
+											"Default value: config.ini"))
 					.create("f"))
+			.addOption(OptionBuilder
+					.withLongOpt("home")
+					.hasOptionalArg()
+					.withArgName("dir")
+					.withDescription(format("Home directory used from store configuration files and as root for open config (see --file)%n" +
+											"Default value:%n" +
+											"*) option not set: directory where .jar-file located%n" +
+											"*) option set without arg: directory '%s' in user home%n" +
+											"*) option set with arg: user defined directory", DEFAULT_HOME_DIR_NAME))
+					.create("H"))
 			.addOption("h", "help", false, "Print this help");
 
     public static void main(String[] args) {
@@ -132,13 +144,19 @@ public class EsetUpdater {
         }
     }
 
-    private static File detectRootDir() {
-        //todo -h --home: Use dir ".eset_upd" in user home
-        //todo -p --path: User user defined directory
+    private File detectRootDir() {
+		if (cli.hasOption("home")) {
+			String path = cli.getOptionValue("home", System.getProperty("user.home") + File.separator + DEFAULT_HOME_DIR_NAME);
+			File file = new File(path);
+			if (!file.exists()) {
+				isTrue(file.mkdirs(), "Invalid home path: %s", file.getAbsolutePath());
+			}
+			return file;
+		}
         String command = System.getProperty("sun.java.command");
         if (isNotEmpty(command) && !command.contains(File.pathSeparator) && command.contains(".jar")) {
             File jar = command.contains(File.separator) ? new File(command) : new File("./" + command);
-            isTrue(jar.getParentFile() != null, "Invalid user path %s", jar.getAbsolutePath());
+            isTrue(jar.getParentFile() != null, "Invalid user path: %s", jar.getAbsolutePath());
             return jar.getParentFile().getAbsoluteFile();
         } else {
             return new File(System.getProperty("user.dir")).getAbsoluteFile();
