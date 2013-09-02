@@ -6,6 +6,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import name.valery1707.tools.configuration.Configuration;
 import name.valery1707.tools.configuration.InvalidConfigurationException;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -25,10 +26,24 @@ import static org.apache.commons.lang3.Validate.isTrue;
 public class EsetUpdater {
 
     private static final int EXIT_STATUS_ERROR_IN_CONFIGURATION = 1;
+    private static final int EXIT_STATUS_ERROR_IN_PARAMS = 2;
+
+	private static final Options cliOptions = new Options()
+			.addOption("h", "help", false, "This help");
 
     public static void main(String[] args) {
-        EsetUpdater esetUpdater = new EsetUpdater();
-        esetUpdater.run();
+		try {
+			CommandLine line = new GnuParser().parse(cliOptions, args);
+			if (line.hasOption("help")) {
+				new HelpFormatter().printHelp(detectRootJar(), cliOptions, true);
+				return;
+			}
+			EsetUpdater esetUpdater = new EsetUpdater();
+			esetUpdater.run();
+		} catch (ParseException e) {
+			System.err.println("Parsing failed.  Reason: " + e.getMessage());
+			System.exit(EXIT_STATUS_ERROR_IN_PARAMS);
+		}
     }
 
     private final File rootDir;
@@ -115,6 +130,15 @@ public class EsetUpdater {
             return new File(System.getProperty("user.dir")).getAbsoluteFile();
         }
     }
+
+	private static String detectRootJar() {
+		String property = System.getProperty("sun.java.command");
+		if (property.contains(".jar")) {
+			return property.substring(0, property.indexOf(".jar") + 4);
+		} else {
+			return property.substring(0, property.indexOf(' '));
+		}
+	}
 
     private static final Logger log = LoggerFactory.getLogger(EsetUpdater.class);
 }
