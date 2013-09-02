@@ -65,7 +65,7 @@ public class EsetUpdater {
 			EsetUpdater esetUpdater = new EsetUpdater(cli);
 			esetUpdater.run();
 		} catch (ParseException e) {
-			System.err.println("Parsing failed.  Reason: " + e.getMessage());
+			System.err.println("Arguments parsing failed. Reason: " + e.getMessage());
 			System.exit(EXIT_STATUS_ERROR_IN_PARAMS);
 		}
     }
