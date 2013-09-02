@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Comparator;
 
 import static java.lang.String.format;
 import static name.valery1707.tools.Utils.closeQuietly;
@@ -44,7 +45,8 @@ public class EsetUpdater {
 			CommandLine cli = new GnuParser().parse(cliOptions, args);
 			if (cli.hasOption("help")) {
 				HelpFormatter helpFormatter = new HelpFormatter();
-				helpFormatter.setWidth(100);
+				helpFormatter.setWidth(120);
+				helpFormatter.setOptionComparator(new EmptyComparator());
 				helpFormatter.printHelp(detectRootJar(), cliOptions, true);
 				return;
 			}
@@ -149,6 +151,17 @@ public class EsetUpdater {
 			return property.substring(0, property.indexOf(".jar") + 4);
 		} else {
 			return property.substring(0, property.indexOf(' '));
+		}
+	}
+
+	/**
+	 * Save original element positions
+	 */
+	private static class EmptyComparator implements Comparator {
+		@SuppressWarnings("ComparatorMethodParameterNotUsed")
+		@Override
+		public int compare(Object o1, Object o2) {
+			return 0;
 		}
 	}
 
