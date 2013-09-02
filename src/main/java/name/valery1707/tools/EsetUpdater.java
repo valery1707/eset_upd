@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
+import static java.lang.String.format;
 import static name.valery1707.tools.Utils.closeQuietly;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.Validate.isTrue;
@@ -28,17 +29,24 @@ public class EsetUpdater {
     private static final int EXIT_STATUS_ERROR_IN_CONFIGURATION = 1;
     private static final int EXIT_STATUS_ERROR_IN_PARAMS = 2;
 
+	@SuppressWarnings("AccessStaticViaInstance")
 	private static final Options cliOptions = new Options()
-			.addOption("h", "help", false, "This help");
+			.addOption(OptionBuilder
+					.withLongOpt("file")
+					.hasArg()
+					.withArgName("file")
+					.withDescription(format("Path for file with configuration, relative from .jar file location.%nDefault value: config.ini"))
+					.create("f"))
+			.addOption("h", "help", false, "Print this help");
 
     public static void main(String[] args) {
 		try {
-			CommandLine line = new GnuParser().parse(cliOptions, args);
-			if (line.hasOption("help")) {
+			CommandLine cli = new GnuParser().parse(cliOptions, args);
+			if (cli.hasOption("help")) {
 				new HelpFormatter().printHelp(detectRootJar(), cliOptions, true);
 				return;
 			}
-			EsetUpdater esetUpdater = new EsetUpdater();
+			EsetUpdater esetUpdater = new EsetUpdater(cli);
 			esetUpdater.run();
 		} catch (ParseException e) {
 			System.err.println("Parsing failed.  Reason: " + e.getMessage());
@@ -46,10 +54,12 @@ public class EsetUpdater {
 		}
     }
 
+	private final CommandLine cli;
     private final File rootDir;
     private Configuration configuration;
 
-    public EsetUpdater() {
+    public EsetUpdater(CommandLine line) {
+		cli = line;
         rootDir = detectRootDir();
         //todo check for writable
     }
@@ -100,7 +110,7 @@ public class EsetUpdater {
 
     private void loadConfiguration() {
         try {
-            configuration = new Configuration(new File(rootDir, "config.ini"));
+            configuration = new Configuration(new File(rootDir, cli.getOptionValue("file", "config.ini")));
         } catch (InvalidConfigurationException e) {
             System.out.println("Error in configuration: " + e.getMessage());
             System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
