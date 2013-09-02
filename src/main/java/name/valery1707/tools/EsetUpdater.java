@@ -77,7 +77,6 @@ public class EsetUpdater {
     public EsetUpdater(CommandLine line) {
 		cli = line;
         rootDir = detectRootDir();
-		isTrue(rootDir.canWrite(), "User must have write permission to home path: %s", rootDir.getAbsolutePath());
     }
 
     public void run() {
