@@ -43,7 +43,9 @@ public class EsetUpdater {
 		try {
 			CommandLine cli = new GnuParser().parse(cliOptions, args);
 			if (cli.hasOption("help")) {
-				new HelpFormatter().printHelp(detectRootJar(), cliOptions, true);
+				HelpFormatter helpFormatter = new HelpFormatter();
+				helpFormatter.setWidth(100);
+				helpFormatter.printHelp(detectRootJar(), cliOptions, true);
 				return;
 			}
 			EsetUpdater esetUpdater = new EsetUpdater(cli);
