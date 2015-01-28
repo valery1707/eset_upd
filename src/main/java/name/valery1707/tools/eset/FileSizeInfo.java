@@ -24,7 +24,7 @@ public class FileSizeInfo {
     public FileSizeInfo(Configuration configuration, Downloader downloader, FileInfo fileInfo) throws IOException {
         this(fileInfo.sizeLocal(configuration.getPathWeb()),
                 fileInfo.sizeIni(),
-                downloader.size(fileInfo.getUrl()),
+                configuration.isCheckRemoteSize() ? downloader.size(fileInfo.getUrl()) : 0,
                 fileInfo.sizeLocal(configuration.getPathTmp()));
     }
 
@@ -45,11 +45,11 @@ public class FileSizeInfo {
     }
 
     public boolean isStoredInTemp() {
-        return temp == remote;
+        return getTemp() == getIni();
     }
 
     public boolean isNeedDownload() {
-        return remote != local && remote > 0;
+		return getLocal() != (getRemote() > 0 ? getRemote() : getIni());
     }
 
     public boolean isInaccessible() {

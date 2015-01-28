@@ -103,6 +103,9 @@ public class EsetUpdater {
             System.out.println("Error in configuration: " + e.getMessage());
             System.exit(EXIT_STATUS_ERROR_IN_CONFIGURATION);
         }
+		if (cli.isSkipRemoteSizeCheck() != null) {
+			configuration.setCheckRemoteSize(cli.isSkipRemoteSizeCheck());
+		}
     }
 
     private void runUpdater() {

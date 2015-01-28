@@ -35,6 +35,12 @@ public class CliArguments {
 	)
 	private boolean skipExtractSamples = false;
 
+	@Parameter(
+			names = "--skip-remote-size-check",
+			description = "Skip checking size of files on remote server"
+	)
+	private Boolean skipRemoteSizeCheck;
+
 	public Integer getVerbose() {
 		return verbose;
 	}
@@ -53,5 +59,9 @@ public class CliArguments {
 
 	public boolean isSkipExtractSamples() {
 		return skipExtractSamples;
+	}
+
+	public Boolean isSkipRemoteSizeCheck() {
+		return skipRemoteSizeCheck;
 	}
 }

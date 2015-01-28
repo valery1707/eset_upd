@@ -57,6 +57,9 @@ public class Configuration {
     @ConfigurationPath(path = "remote.allowInaccessible", def = "False", type = ConfigurationType.BOOLEAN)
     private Boolean allowInaccessible;
 
+    @ConfigurationPath(path = "remote.checkSize", def = "True", type = ConfigurationType.BOOLEAN)
+    private Boolean checkRemoteSize;
+
     public Configuration(File file) throws InvalidConfigurationException {
         try {
             Ini ini = new Ini(file);
@@ -196,4 +199,12 @@ public class Configuration {
     public Boolean getAllowInaccessible() {
         return allowInaccessible;
     }
+
+	public Boolean isCheckRemoteSize() {
+		return checkRemoteSize;
+	}
+
+	public void setCheckRemoteSize(Boolean checkRemoteSize) {
+		this.checkRemoteSize = checkRemoteSize;
+	}
 }
