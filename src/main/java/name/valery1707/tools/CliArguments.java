@@ -29,6 +29,12 @@ public class CliArguments {
 	)
 	private String configuration = "config.ini";
 
+	@Parameter(
+			names = "--skip-extract-samples",
+			description = "Skip extracting samples of configuration files to home directory"
+	)
+	private boolean skipExtractSamples = false;
+
 	public Integer getVerbose() {
 		return verbose;
 	}
@@ -43,5 +49,9 @@ public class CliArguments {
 
 	public String getConfiguration() {
 		return configuration;
+	}
+
+	public boolean isSkipExtractSamples() {
+		return skipExtractSamples;
 	}
 }

@@ -52,7 +52,9 @@ public class EsetUpdater {
 
     public void run() {
         System.out.println("Home directory: " + rootDir.getAbsolutePath());
-        extractSamples(rootDir);
+		if (!cli.isSkipExtractSamples()) {
+			extractSamples(rootDir);
+		}
         configureLogging(new File(rootDir, "logback4j.xml"));
         loadConfiguration();
         runUpdater();
