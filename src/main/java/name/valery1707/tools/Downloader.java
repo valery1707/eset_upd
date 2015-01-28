@@ -6,13 +6,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.AutoRetryHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultServiceUnavailableRetryStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +24,7 @@ import java.io.IOException;
 public class Downloader implements Closeable {
     private final Configuration configuration;
     private final HttpHost httpHost;
-    private final HttpClient httpClient;
+    private final CloseableHttpClient httpClient;
 
     public Downloader(Configuration configuration) {
         this.configuration = configuration;
@@ -32,18 +32,22 @@ public class Downloader implements Closeable {
         httpClient = prepareHttpClient();
     }
 
-    private HttpClient prepareHttpClient() {
-        DefaultHttpClient client = new DefaultHttpClient();
-        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(configuration.getUsername(), configuration.getPassword());
-        AuthScope authScope = new AuthScope(httpHost);
-        client.getCredentialsProvider().setCredentials(authScope, credentials);
-        int maxRetries = Math.min(configuration.getMaxRetries(), 20);
-        return new AutoRetryHttpClient(client, new DefaultServiceUnavailableRetryStrategy(maxRetries, 1000));
+    private CloseableHttpClient prepareHttpClient() {
+		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(configuration.getUsername(), configuration.getPassword());
+		BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+
+		int maxRetries = Math.min(configuration.getMaxRetries(), 20);
+
+		return HttpClientBuilder.create()
+				.setDefaultCredentialsProvider(credentialsProvider)
+				.setServiceUnavailableRetryStrategy(new DefaultServiceUnavailableRetryStrategy(maxRetries, 1000))
+				.build();
     }
 
     @Override
     public void close() throws IOException {
-        httpClient.getConnectionManager().shutdown();
+        httpClient.close();
     }
 
     private static final int[] GET_SCs = new int[]{HttpStatus.SC_OK};
